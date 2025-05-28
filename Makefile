@@ -16,7 +16,7 @@ develop:
 	pip install -e .[dev]
 
 lint:
-	ruff src/ tests/
+	ruff check src/ tests/
 	mypy src/ tests/
 
 format:
