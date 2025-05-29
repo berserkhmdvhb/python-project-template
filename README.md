@@ -1,8 +1,7 @@
 # 🧰 python-project-template
 
-
-[![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)
-[![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
+[![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)  
+[![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)  
 [![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
 
 A **modern, minimal, and reusable Python project template** for building libraries, CLIs, or hybrid packages — designed with best practices in mind.
@@ -13,6 +12,8 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 - [✨ Features](#-features)  
 - [📦 Project Structure](#-project-structure)  
+  - [📂 Structure](#-structure)  
+  - [🧱 Architecture](#-architecture)  
 - [🚀 Quickstart](#-quickstart)  
 - [🧑‍💼 Developer Guide](#-developer-guide)  
 - [🔁 Continuous Integration](#-continuous-integration)  
@@ -24,22 +25,24 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 ## ✨ Features
 
-- 📜 PEP 621–compliant `pyproject.toml`  
-- 🧱 Hybrid support for both CLI (`myproject`, `python -m myproject`) and importable library  
-- 🔧 Environment-dependent configuration via `.env` and `settings.py` (DEV/UAT/PROD)  
-- 📁 `src/` layout with clean separation of CLI logic, core library, and utilities  
-- 🔍 Static analysis: `ruff` (lint/format), `mypy` (type checking)  
-- 🧪 Testing: `pytest`, `coverage`, 100% coverage on core modules, CLI, and logging  
-- 📝 Log management:  
+* 📜 Clean, PEP 621–compliant `pyproject.toml`  
+* 🧱 Hybrid support for both CLI (`myproject`, `python -m myproject`) and importable library  
+* 🔧 Environment-dependent configuration via `.env` and `settings.py` (DEV/UAT/PROD)  
+* 📁 `src/` layout with clean separation of CLI logic, core library, and utilities  
+* 🔍 Static analysis: `ruff` (lint/format), `mypy` (type checking)  
+* 🧪 Testing: `pytest`, `coverage`, full CLI test suite, and 100% coverage on core modules  
+* 📝 Log management:  
   - Per-environment log directories (`logs/DEV`, `logs/UAT`, `logs/PROD`)  
   - Rotating logs by size with configurable `LOG_MAX_BYTES` and `LOG_BACKUP_COUNT`  
-- 👋 Pre-commit hooks for code quality  
-- 🔁 GitHub Actions for CI (lint, typecheck, tests, coverage)  
-- 🛠 Makefile with common workflows: dev, test, lint, release  
+* 👋 Pre-commit hooks for code quality  
+* 🔁 GitHub Actions for CI (lint, typecheck, tests, coverage)  
+* 🛠 Makefile for automation (dev, test, lint, release, publish)  
 
 ---
 
 ## 📦 Project Structure
+
+### 📂 Structure
 
 ```
 python-project-template/
@@ -53,7 +56,7 @@ python-project-template/
 ├── README.md                         ← This file
 ├── src/
 │   └── myproject/
-│       ├── __init__.py               ← Package version
+│       ├── __init__.py               ← Defines `__version__`
 │       ├── __main__.py               ← `python -m myproject`
 │       ├── cli.py                    ← CLI entrypoint & args
 │       ├── cli_color_utils.py        ← Color formatting utilities
@@ -70,76 +73,67 @@ python-project-template/
         └── demo.ipynb                ← Notebook for interactive testing
 ```
 
+### 🧱 Architecture
+
+The project is organized for **modularity, reusability, and clarity**:
+
+* `src/myproject/__main__.py` allows direct module execution (`python -m myproject`)  
+* `cli.py` contains CLI logic separated from business logic  
+* `cli_color_utils.py` centralizes color formatting and ANSI handling  
+* `cli_logger_utils.py` handles environment-aware, rotating file logging  
+* `core.py` hosts library functions with full test coverage  
+* `constants.py` and `settings.py` drive configuration and defaults  
+
+This architecture ensures:
+
+* **Separation of concerns** between CLI and core logic  
+* **Extensibility** for growing features  
+* **Testability** with isolated units for CLI, core, and logging  
+
 ---
 
 ## 🚀 Quickstart
 
-### 1. Create virtual environment & install
+### 📥 Installation (Editable Mode)
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # or .venv\Scripts\activate on Windows
-make develop                # installs editable package + dev dependencies
+source .venv/bin/activate          # or .venv\Scripts\activate on Windows
+make develop                       # or: pip install -e .[dev]
 ```
 
-### 2. Configure environment
-
-Copy the template for PyPI publishing (optional):
+### 🗅 CLI Usage
 
 ```bash
-cp .pypirc.template ~/.pypirc
-# edit ~/.pypirc, replacing <your-token> placeholders
-```
-
-Set your runtime environment in `.env`:
-
-```ini
-MYPROJECT_ENV=DEV
-LOG_MAX_BYTES=1000000
-LOG_BACKUP_COUNT=5
-```
-
-### 3. Run CLI
-
-```bash
-myproject --help
+myproject --version
 myproject --query "hello"
-python -m myproject --version
+python -m myproject --help
 ```
 
 ---
 
 ## 🧑‍💼 Developer Guide
 
-### Makefile commands
+### 🛠 Makefile Commands
 
 | Command                | Description                              |
 | ---------------------- | ---------------------------------------- |
-| `make help`            | List all commands                       |
-| `make install`         | `pip install -e .`                      |
-| `make develop`         | `pip install -e .[dev]`                 |
-| `make format`          | `ruff format src/ tests/`               |
-| `make lint`            | `ruff check` + `mypy src/ tests/`       |
-| `make test`            | `pytest -v`                             |
-| `make test-fast`       | `pytest --lf -x -v`                     |
-| `make coverage`        | `pytest --cov=myproject --cov-report=term` |
-| `make coverage-xml`    | `pytest --cov=myproject --cov-report=xml` |
-| `make upload-coverage` | `python -m coveralls`                   |
-| `make precommit`       | `pre-commit install`                    |
-| `make precommit-run`   | `pre-commit run --all-files`            |
-| `make build`           | `python -m build`                       |
-| `make clean`           | remove `dist/`, `build/`, `*.egg-info`  |
-| `make publish-test`    | Upload to TestPyPI                      |
-| `make publish`         | Upload to PyPI                          |
-
-
-You can also run tools directly:
-
-```bash
-ruff check src/ tests/
-mypy src/ tests/
-pytest -v
-```
+| `make help`            | Show available commands                  |
+| `make install`         | Install package (editable mode)          |
+| `make develop`         | Install with dev dependencies (`.[dev]`) |
+| `make format`          | Auto-format with Ruff                    |
+| `make lint`            | Run Ruff + MyPy for lint/typecheck       |
+| `make test`            | Run all tests (`pytest -v`)              |
+| `make test-fast`       | Re-run only last failed tests            |
+| `make coverage`        | Show coverage in terminal                |
+| `make coverage-xml`    | Generate XML for CI/Coveralls            |
+| `make upload-coverage` | Upload to Coveralls (`python -m coveralls`) |
+| `make precommit`       | Install pre-commit hooks                 |
+| `make precommit-run`   | Run pre-commit on all files              |
+| `make build`           | Build distributions (`python -m build`)  |
+| `make clean`           | Remove build artifacts (`dist/`, etc.)   |
+| `make publish-test`    | Upload to TestPyPI                       |
+| `make publish`         | Upload to PyPI                           |
 
 ### 📋 Pre-commit Hooks
 
@@ -153,23 +147,23 @@ pre-commit run --all-files
 ## 🔁 Continuous Integration
 
 - **GitHub Actions** (`.github/workflows/tests.yml`):
-  - Python 3.9–3.13 matrix
-  - `make lint`, `make test`, `make coverage-xml`
-  - Optional Coveralls upload
+- Python 3.9–3.13 matrix  
+- `make lint`, `make test`, `make coverage-xml`  
+- Optional Coveralls upload  
 
 ---
 
 ## 📦 Publishing to PyPI
 
-1. Add your credentials to `~/.pypirc` from the [template](.pypirc.template).  
-2. Build & publish:
+1. Copy `.pypirc.template` to `~/.pypirc` and insert your tokens.  
+2. Build and publish:
 
    ```bash
    make build
    twine upload dist/*
    ```
 
-3. To TestPyPI:
+3. For TestPyPI:
 
    ```bash
    make publish-test
@@ -181,11 +175,11 @@ pre-commit run --all-files
 
 Use this template to:
 
-- Kickstart a **modern Python project**  
-- Support **environment-aware configuration**  
-- Ship **both CLI and library** in one package  
-- Ensure **quality** with linting, typing, testing, and logs  
-- Automate workflows via **Make, pre-commit, CI, and tests**  
+* Start with a **modern Python project layout**  
+* Support **environment-aware configuration**  
+* Ship **both CLI and library** in one package  
+* Maintain **code quality** with linting, typing, testing, and logs  
+* Automate workflows via **Make, pre-commit, CI, and tests**  
 
 ---
 
