@@ -56,3 +56,8 @@ jobs:
         with:
           name: coverage-report-${{ matrix.python-version }}-${{ github.run_id }}
           path: coverage.xml
+
+      - name: 📈 Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
