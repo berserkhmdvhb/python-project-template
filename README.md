@@ -132,6 +132,22 @@ python -m myproject --version
 | `make publish-test`    | Upload to TestPyPI                      |
 | `make publish`         | Upload to PyPI                          |
 
+
+You can also run tools directly:
+
+```bash
+ruff check src/ tests/
+mypy src/ tests/
+pytest -v
+```
+
+### 📋 Pre-commit Hooks
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
 ---
 
 ## 🔁 Continuous Integration
