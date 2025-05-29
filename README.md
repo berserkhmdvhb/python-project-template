@@ -10,15 +10,15 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 ## 📚 Table of Contents
 
-- [✨ Features](#✨-features)
-- [📦 Project Structure](#📆-project-structure)
-  -  [📂 Structure](#📂-structure)
-  -  [🧱 Architecture](#🧱-architecture)
-- [🚀 Quickstart](#🚀-quickstart)
-- [🧑‍💼 Developer Guide](#🧑‍💼-developer-guide)
-- [🔁 Continuous Integration](#🔁-continuous-integration)
-- [🎯 Goals](#🎯-goals)
-- [📄 License](#📄-license)
+- [✨ Features](#-features)
+- [📦 Project Structure](#-project-structure)
+  -  [📂 Structure](#-structure)
+  -  [🧱 Architecture](#-architecture)
+- [🚀 Quickstart](#-quickstart)
+- [🧑‍💼 Developer Guide](#-developer-guide)
+- [🔁 Continuous Integration](#-continuous-integration)
+- [🎯 Goals](#-goals)
+- [📄 License](#-license)
 
 ---
 
