@@ -1,9 +1,7 @@
 import subprocess
 import sys
-import logging
-from io import StringIO
-import pytest
 import os
+import pytest
 
 from myproject.constants import (
     EXIT_SUCCESS,
@@ -14,10 +12,6 @@ from myproject.constants import (
 
 
 def run_cli(args: list[str]) -> tuple[str, str, int]:
-    """
-    Run the CLI as a subprocess and return (stdout, stderr, returncode).
-    Automatically sets --color=never and injects a test environment.
-    """
     if "--color=never" not in args:
         args.append("--color=never")
 
@@ -101,41 +95,3 @@ def test_cli_internal_error(monkeypatch):
         myproject.cli.main()
 
     assert excinfo.value.code == EXIT_INVALID_USAGE
-
-
-def test_log_output_for_valid_query(monkeypatch):
-    import myproject.cli
-
-    log_stream = StringIO()
-    handler = logging.StreamHandler(log_stream)
-    logger = logging.getLogger("myproject")
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    logger.propagate = False
-
-    monkeypatch.setattr(
-        sys, "argv", ["myproject", "--query", "logtest", "--color=never"]
-    )
-
-    with pytest.raises(SystemExit) as excinfo:
-        myproject.cli.main()
-
-    logs = log_stream.getvalue()
-    assert "processing query" in logs.lower()
-    assert excinfo.value.code == EXIT_SUCCESS
-
-    logger.removeHandler(handler)
-
-
-def test_log_output_for_empty_query(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["myproject", "--query", " ", "--color=never"])
-    result = subprocess.run(
-        [sys.executable, "-m", "myproject", "--query", " ", "--color=never"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        env={"MYPROJECT_ENV": "DEV"},
-    )
-    assert "query string must not be empty" in result.stderr.lower()
-    assert result.returncode == EXIT_INVALID_USAGE

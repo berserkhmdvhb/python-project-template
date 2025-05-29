@@ -26,7 +26,7 @@ DEFAULT_LOG_LEVEL: Final = os.getenv(ENV_LOG_LEVEL, "INFO")
 LOG_FORMAT: Final = "[%(asctime)s] [%(levelname)s] [%(env)s] %(message)s"
 
 LOG_DIR: Final = "logs"
-LOG_FILE_NAME: Final = "myproject.log"
+LOG_FILE_NAME: Final = "info.log"
 LOG_FILE_PATH: Final = os.path.join(LOG_DIR, LOG_FILE_NAME)
 
 # Rotating log settings (read from .env or use defaults)
