@@ -10,33 +10,33 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 ## 📚 Table of Contents
 
-- [✨ Features](#-features)  
-- [📦 Project Structure](#-project-structure)  
-  - [📂 Structure](#-structure)  
-  - [🧱 Architecture](#-architecture)  
-- [🚀 Quickstart](#-quickstart)  
-- [🧑‍💼 Developer Guide](#-developer-guide)  
-- [🔁 Continuous Integration](#-continuous-integration)  
-- [📦 Publishing to PyPI](#-publishing-to-pypi)  
-- [🎯 Goals](#-goals)  
-- [📄 License](#-license)  
+- [✨ Features](#-features)
+- [📦 Project Structure](#-project-structure)
+  - [📂 Structure](#-structure)
+  - [🧱 Architecture](#-architecture)
+- [🚀 Quickstart](#-quickstart)
+- [🧑‍💼 Developer Guide](#-developer-guide)
+- [🔁 Continuous Integration](#-continuous-integration)
+- [📦 Publishing to PyPI](#-publishing-to-pypi)
+- [🎯 Goals](#-goals)
+- [📄 License](#-license)
 
 ---
 
 ## ✨ Features
 
-* 📜 Clean, PEP 621–compliant `pyproject.toml`  
-* 🧱 Hybrid support for both CLI (`myproject`, `python -m myproject`) and importable library  
-* 🔧 Environment-dependent configuration via `.env` and `settings.py` (DEV/UAT/PROD)  
-* 📁 `src/` layout with clean separation of CLI logic, core library, and utilities  
-* 🔍 Static analysis: `ruff` (lint/format), `mypy` (type checking)  
-* 🧪 Testing: `pytest`, `coverage`, full CLI test suite, and 100% coverage on core modules  
-* 📝 Log management:  
-  - Per-environment log directories (`logs/DEV`, `logs/UAT`, `logs/PROD`)  
-  - Rotating logs by size with configurable `LOG_MAX_BYTES` and `LOG_BACKUP_COUNT`  
-* 👋 Pre-commit hooks for code quality  
-* 🔁 GitHub Actions for CI (lint, typecheck, tests, coverage)  
-* 🛠 Makefile for automation (dev, test, lint, release, publish)  
+* 📜 Clean, PEP 621–compliant `pyproject.toml`
+* 🧱 Hybrid support for both CLI (`myproject`, `python -m myproject`) and importable library
+* 🔧 Environment-dependent configuration via `.env` and `settings.py` (DEV/UAT/PROD)
+* 📁 `src/` layout with clean separation of CLI logic, core library, and utilities
+* 🔍 Static analysis: `ruff` (lint/format), `mypy` (type checking)
+* 🧪 Testing: `pytest`, `coverage`, full CLI test suite, and 100% coverage on core modules
+* 📝 Log management:
+  - Per-environment log directories (`logs/DEV`, `logs/UAT`, `logs/PROD`)
+  - Rotating logs by size with configurable `LOG_MAX_BYTES` and `LOG_BACKUP_COUNT`
+* 👋 Pre-commit hooks for code quality
+* 🔁 GitHub Actions for CI (lint, typecheck, tests, coverage)
+* 🛠 Makefile for automation (dev, test, lint, release, publish)
 
 ---
 
@@ -48,7 +48,9 @@ A **modern, minimal, and reusable Python project template** for building librari
 python-project-template/
 ├── .github/workflows/tests.yml       ← GitHub CI pipeline
 ├── .pre-commit-config.yaml           ← Pre-commit hooks
-├── .pypirc.template                  ← PyPI/TestPyPI credentials template
+├── publish/
+│   └── .pypirc.sample                ← PyPI/TestPyPI credentials sample
+├── .env.sample                       ← Environment variable sample
 ├── LICENSE.txt                       ← MIT License
 ├── Makefile                          ← Dev/test/release commands
 ├── MANIFEST.in                       ← Packaging manifest
@@ -77,18 +79,18 @@ python-project-template/
 
 The project is organized for **modularity, reusability, and clarity**:
 
-* `src/myproject/__main__.py` allows direct module execution (`python -m myproject`)  
-* `cli.py` contains CLI logic separated from business logic  
-* `cli_color_utils.py` centralizes color formatting and ANSI handling  
-* `cli_logger_utils.py` handles environment-aware, rotating file logging  
-* `core.py` hosts library functions with full test coverage  
-* `constants.py` and `settings.py` drive configuration and defaults  
+* `src/myproject/__main__.py` allows direct module execution (`python -m myproject`)
+* `cli.py` contains CLI logic separated from business logic
+* `cli_color_utils.py` centralizes color formatting and ANSI handling
+* `cli_logger_utils.py` handles environment-aware, rotating file logging
+* `core.py` hosts library functions with full test coverage
+* `constants.py` and `settings.py` drive configuration and defaults
 
 This architecture ensures:
 
-* **Separation of concerns** between CLI and core logic  
-* **Extensibility** for growing features  
-* **Testability** with isolated units for CLI, core, and logging  
+* **Separation of concerns** between CLI and core logic
+* **Extensibility** for growing features
+* **Testability** with isolated units for CLI, core, and logging
 
 ---
 
@@ -147,15 +149,15 @@ pre-commit run --all-files
 ## 🔁 Continuous Integration
 
 - **GitHub Actions** (`.github/workflows/tests.yml`):
-- Python 3.9–3.13 matrix  
-- `make lint`, `make test`, `make coverage-xml`  
-- Optional Coveralls upload  
+- Python 3.9–3.13 matrix
+- `make lint`, `make test`, `make coverage-xml`
+- Optional Coveralls upload
 
 ---
 
 ## 📦 Publishing to PyPI
 
-1. Copy `.pypirc.template` to `~/.pypirc` and insert your tokens.  
+1. Copy `.pypirc.template` to `~/.pypirc` and insert your tokens.
 2. Build and publish:
 
    ```bash
@@ -175,11 +177,11 @@ pre-commit run --all-files
 
 Use this template to:
 
-* Start with a **modern Python project layout**  
-* Support **environment-aware configuration**  
-* Ship **both CLI and library** in one package  
-* Maintain **code quality** with linting, typing, testing, and logs  
-* Automate workflows via **Make, pre-commit, CI, and tests**  
+* Start with a **modern Python project layout**
+* Support **environment-aware configuration**
+* Ship **both CLI and library** in one package
+* Maintain **code quality** with linting, typing, testing, and logs
+* Automate workflows via **Make, pre-commit, CI, and tests**
 
 ---
 
