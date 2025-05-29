@@ -29,6 +29,10 @@ LOG_DIR: Final = "logs"
 LOG_FILE_NAME: Final = "myproject.log"
 LOG_FILE_PATH: Final = os.path.join(LOG_DIR, LOG_FILE_NAME)
 
+# Rotating log settings (read from .env or use defaults)
+LOG_MAX_BYTES = int(os.getenv("LOG_MAX_BYTES", 1_000_000))
+LOG_BACKUP_COUNT = int(os.getenv("LOG_BACKUP_COUNT", 5))
+
 # =============================================================================
 # Environment Variables
 # =============================================================================

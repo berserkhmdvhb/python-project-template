@@ -1,7 +1,14 @@
 import logging
-import os
+from pathlib import Path
+from logging.handlers import RotatingFileHandler
+
 from myproject import settings
-from myproject.constants import LOG_FILE_PATH, LOG_FORMAT
+from myproject.constants import (
+    LOG_FORMAT,
+    LOG_FILE_NAME,
+    LOG_MAX_BYTES,
+    LOG_BACKUP_COUNT,
+)
 
 
 class EnvironmentFilter(logging.Filter):
@@ -13,7 +20,8 @@ class EnvironmentFilter(logging.Filter):
 def setup_logging() -> None:
     """
     Configure logging for both console and file output.
-    Includes environment tagging and ensures log folder exists.
+    Includes environment tagging, ensures log folder exists,
+    and sets up rotating log files by size.
     Prevents duplicate handlers on repeated setup calls.
     """
     logger = logging.getLogger("myproject")
@@ -21,11 +29,13 @@ def setup_logging() -> None:
     if logger.handlers:
         return  # Prevent duplicate setup
 
-    logger.setLevel(logging.DEBUG)  # Capture everything; filtering is handler-specific
+    logger.setLevel(logging.DEBUG)
     logger.propagate = False
 
-    # Ensure log directory exists
-    os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
+    # Compute log file path based on environment
+    log_dir = Path(settings.LOG_DIR)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file_path = log_dir / LOG_FILE_NAME
 
     formatter = logging.Formatter(LOG_FORMAT)
     env_filter = EnvironmentFilter()
@@ -37,8 +47,15 @@ def setup_logging() -> None:
     stream_handler.setLevel(logging.DEBUG if settings.IS_DEV else logging.INFO)
     logger.addHandler(stream_handler)
 
-    # File handler — always logs all levels
-    file_handler = logging.FileHandler(LOG_FILE_PATH, encoding="utf-8")
+    # Rotating file handler
+    file_handler = RotatingFileHandler(
+        filename=log_file_path,
+        mode="a",
+        maxBytes=LOG_MAX_BYTES,
+        backupCount=LOG_BACKUP_COUNT,
+        encoding="utf-8",
+        delay=True,
+    )
     file_handler.setFormatter(formatter)
     file_handler.addFilter(env_filter)
     file_handler.setLevel(logging.DEBUG)

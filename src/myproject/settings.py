@@ -12,3 +12,9 @@ if ENVIRONMENT not in VALID_ENVS:
 IS_DEV = ENVIRONMENT == "DEV"
 IS_UAT = ENVIRONMENT == "UAT"
 IS_PROD = ENVIRONMENT == "PROD"
+
+# New: Lowercase version for directory naming
+ENV_NAME = ENVIRONMENT.lower()
+
+# New: Logs folder path
+LOG_DIR = os.path.join("logs", ENV_NAME)
