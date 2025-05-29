@@ -1,7 +1,5 @@
 """Core logic for myproject."""
 
-from typing import LiteralString
-
 
 def sanitize_input(value: str | None) -> str:
     """
@@ -21,7 +19,7 @@ def sanitize_input(value: str | None) -> str:
     return value.strip()
 
 
-def process_query(query: str | None) -> LiteralString:
+def process_query(query: str | None) -> str:
     """
     Process the sanitized input query and return a result.
 
@@ -36,7 +34,7 @@ def process_query(query: str | None) -> LiteralString:
     return f"Processed query: {clean_query}"
 
 
-def example_hello() -> LiteralString:
+def example_hello() -> str:
     """
     Dummy function for template demonstration purposes.
 
