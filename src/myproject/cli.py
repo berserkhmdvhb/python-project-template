@@ -5,6 +5,7 @@ import logging
 import sys
 from importlib.metadata import version, PackageNotFoundError
 from typing import NoReturn
+
 from myproject.constants import (
     PACKAGE_NAME,
     EXIT_INVALID_USAGE,
@@ -20,11 +21,8 @@ from myproject.cli_color_utils import (
     format_debug,
     format_warning,
 )
-from myproject.cli_logger_utils import setup_logging
+from myproject.cli_logger_utils import setup_logging, teardown_logger
 from myproject.core import process_query
-
-# Set up logging to file + console with env context
-setup_logging()
 
 
 def get_version() -> str:
@@ -40,13 +38,6 @@ def nonempty_str(value: str) -> str:
     return value.strip()
 
 
-def setup_cli_logger(quiet: bool) -> logging.Logger:
-    logger = logging.getLogger("myproject")
-    if quiet:
-        logger.setLevel(logging.CRITICAL)
-    return logger
-
-
 class LoggingArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         logger = logging.getLogger("myproject")
@@ -59,9 +50,17 @@ class LoggingArgumentParser(argparse.ArgumentParser):
         self.exit(EXIT_INVALID_USAGE)
 
 
+def setup_cli_logger(quiet: bool) -> None:
+    """(Re)configure logging with optional quiet mode."""
+    # quiet => console logs silenced by using CRITICAL threshold
+    log_level = logging.CRITICAL if quiet else None
+    # reset existing handlers to avoid duplicates
+    setup_logging(log_level=log_level, reset=True)
+
+
 def main() -> None:
     parser = LoggingArgumentParser(
-        description="MyProject CLI — a template command-line entry point.",
+        description="MyProject CLI — a template command-line entry point."
     )
     parser.add_argument(
         "-q",
@@ -90,14 +89,19 @@ def main() -> None:
 
     args = parser.parse_args()
     use_color = should_use_color(args.color)
-    logger = setup_cli_logger(args.quiet)
+
+    # Configure logging now that we know quiet
+    setup_cli_logger(args.quiet)
+    logger = logging.getLogger("myproject")
 
     try:
+        # INFO: Processing
         msg = "Processing query..."
         logger.info(msg)
         if not args.quiet:
             print(format_info(msg, use_color))
 
+        # DEV vs core logic
         if IS_DEV:
             dev_msg = "Simulating logic in DEV mode..."
             logger.debug(dev_msg)
@@ -107,12 +111,14 @@ def main() -> None:
         else:
             processed = process_query(args.query)
 
+        # Build result lines
         results = [
             "[RESULT]",
             f"Input query    : {args.query}",
-            f"{processed}",
+            processed,
         ]
 
+        # Environment-specific diagnostics
         if IS_DEV:
             diag = "DEV environment: Full diagnostics enabled"
             logger.debug(diag)
@@ -130,13 +136,15 @@ def main() -> None:
                 results.append(format_warning(warn, use_color))
 
         print_lines(results, use_color)
+        teardown_logger(logger)
         sys.exit(EXIT_SUCCESS)
 
     except KeyboardInterrupt:
         msg = "Search cancelled by user."
         logger.error(msg)
         if not args.quiet:
-            print(format_error(msg, use_color))
+            print(format_error(msg, use_color), file=sys.stderr)
+        teardown_logger(logger)
         sys.exit(EXIT_CANCELLED)
 
     except Exception as e:
@@ -147,7 +155,8 @@ def main() -> None:
             traceback.print_exc()
         logger.error(err_msg)
         if not args.quiet:
-            print(format_error(err_msg, use_color))
+            print(format_error(err_msg, use_color), file=sys.stderr)
+        teardown_logger(logger)
         sys.exit(EXIT_INVALID_USAGE)
 
 
