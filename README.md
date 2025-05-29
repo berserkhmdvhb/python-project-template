@@ -1,4 +1,4 @@
-# 🧪 python-project-template
+# 🧰 python-project-template
 [![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)
 [![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
@@ -70,24 +70,25 @@ python -m myproject --version
 
 ## 🧑‍💻 Developer Guide
 
-### ✅ Makefile Commands
+### 🛠 Makefile Commands
 
-```bash
-make help            # Show available commands
-make install         # Install package (editable mode)
-make develop         # Install with dev dependencies
-make lint            # Run Ruff and MyPy
-make format          # Auto-format with Ruff
-make test            # Run all tests
-make test-fast       # Re-run only last failed tests
-make coverage        # Show test coverage in terminal
-make coverage-xml    # Generate XML for CI or Coveralls
-make check-all       # Run format, lint, and test coverage
-make precommit       # Install pre-commit hooks
-make precommit-run   # Run all pre-commit hooks
-make build           # Build package for distribution
-make clean           # Remove dist/build artifacts
-```
+| Command              | Description                                 |
+|----------------------|---------------------------------------------|
+| `make help`          | Show available commands                     |
+| `make install`       | Install package (editable mode)             |
+| `make develop`       | Install with dev dependencies               |
+| `make lint`          | Run Ruff and MyPy                           |
+| `make format`        | Auto-format with Ruff                       |
+| `make test`          | Run all tests                               |
+| `make test-fast`     | Re-run only last failed tests               |
+| `make coverage`      | Show test coverage in terminal              |
+| `make coverage-xml`  | Generate XML for CI or Coveralls            |
+| `make check-all`     | Run format, lint, and test coverage         |
+| `make precommit`     | Install pre-commit hooks                    |
+| `make precommit-run` | Run all pre-commit hooks                    |
+| `make build`         | Build package for distribution              |
+| `make clean`         | Remove dist/build artifacts                 |
+
 
 You can also run tools directly:
 
