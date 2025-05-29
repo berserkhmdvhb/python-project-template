@@ -9,17 +9,24 @@ readme = "README.md"
 license = {file = "LICENSE.txt"}
 requires-python = ">=3.9"
 
-dependencies = []
+dependencies = [
+  "colorama>=0.4.0"
+]
 
 [project.optional-dependencies]
 dev = [
-  "mypy",
-  "ruff",
-  "pytest",
-  "coverage",
   "build",
+  "coverage",
+  "coverage==7.5.0",
+  "coveralls>=3.3.2 ; python_version < '3.13'",
+  "colorama",
+  "mypy",
+  "pre-commit",
+  "pytest",
+  "pytest-cov",
   "twine",
-  "pre-commit"
+  "types-colorama",
+  "ruff",
 ]
 
 [project.scripts]
@@ -29,6 +36,12 @@ myproject = "myproject.cli:main"
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.mypy]
+exclude = "\\.ipynb$"
+
+[tool.ruff]
+exclude = ["tests/manual/*"]
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 
@@ -37,3 +50,11 @@ where = ["src"]
 
 [tool.setuptools.dynamic]
 version = { attr = "myproject.__version__" }
+
+# Pytest config
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--maxfail=1 -v"
+filterwarnings = [
+  "ignore::pytest.PytestUnhandledThreadExceptionWarning"
+]

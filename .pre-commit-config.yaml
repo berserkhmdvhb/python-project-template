@@ -3,12 +3,16 @@ repos:
     rev: v0.4.0  # Use latest stable version from https://github.com/astral-sh/ruff-pre-commit
     hooks:
       - id: ruff
+        exclude: \.ipynb$
       - id: ruff-format
+        exclude: \.ipynb$
+
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.9.0  # Use the version you're using locally
     hooks:
       - id: mypy
+        exclude: \.ipynb$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
