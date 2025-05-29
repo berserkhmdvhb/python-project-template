@@ -20,6 +20,7 @@ dev = [
   "coverage==7.5.0",
   "coveralls>=3.3.2 ; python_version < '3.13'",
   "colorama",
+  "dotenv",
   "mypy",
   "pre-commit",
   "pytest",

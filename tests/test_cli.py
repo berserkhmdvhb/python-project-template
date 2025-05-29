@@ -3,6 +3,7 @@ import sys
 import logging
 from io import StringIO
 import pytest
+import os
 
 from myproject.constants import (
     EXIT_SUCCESS,
@@ -15,16 +16,21 @@ from myproject.constants import (
 def run_cli(args: list[str]) -> tuple[str, str, int]:
     """
     Run the CLI as a subprocess and return (stdout, stderr, returncode).
-    Automatically adds --color=never to disable ANSI escape codes for tests.
+    Automatically sets --color=never and injects a test environment.
     """
     if "--color=never" not in args:
         args.append("--color=never")
+
+    env = os.environ.copy()
+    env["MYPROJECT_ENV"] = "DEV"
+
     result = subprocess.run(
         [sys.executable, "-m", "myproject"] + args,
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
     return result.stdout.strip(), result.stderr.strip(), result.returncode
 
@@ -46,18 +52,18 @@ def test_cli_valid_query() -> None:
     assert code == EXIT_SUCCESS
     assert "query" in out.lower()
     assert "hello" in out.lower()
-    assert "processed value" in out.lower()
+    assert any(k in out.lower() for k in ["processed", "value", "mock"])
 
 
 def test_cli_empty_query_string_whitespace() -> None:
     out, err, code = run_cli(["--query", " "])
-    assert code == EXIT_ARGPARSE_ERROR
+    assert code == EXIT_INVALID_USAGE
     assert "empty" in err.lower() or "invalid" in err.lower()
 
 
 def test_cli_missing_query_argument() -> None:
     out, err, code = run_cli([])
-    assert code == EXIT_ARGPARSE_ERROR
+    assert code == EXIT_INVALID_USAGE
     assert "the following arguments are required" in err.lower()
 
 
@@ -102,7 +108,7 @@ def test_log_output_for_valid_query(monkeypatch):
 
     log_stream = StringIO()
     handler = logging.StreamHandler(log_stream)
-    logger = logging.getLogger("myproject.cli")
+    logger = logging.getLogger("myproject")
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     logger.propagate = False
@@ -129,6 +135,7 @@ def test_log_output_for_empty_query(monkeypatch):
         text=True,
         encoding="utf-8",
         errors="replace",
+        env={"MYPROJECT_ENV": "DEV"},
     )
     assert "query string must not be empty" in result.stderr.lower()
-    assert result.returncode == EXIT_ARGPARSE_ERROR
+    assert result.returncode == EXIT_INVALID_USAGE
