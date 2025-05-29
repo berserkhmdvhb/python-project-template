@@ -1,4 +1,5 @@
 # 🧰 python-project-template
+
 [![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)
 [![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
@@ -7,20 +8,36 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 ---
 
-## 📦 Features
+## 📚 Table of Contents
+
+- [✨ Features](#-features)
+- [📦 Project Structure](#-project-structure)
+  -  [📂 Structure](#-structure)
+  -  [🧱 Architecture](#-architecture)
+- [🚀 Quickstart](#-quickstart)
+- [🧑‍💼 Developer Guide](#-developer-guide)
+- [🔁 Continuous Integration](#-continuous-integration)
+- [🎯 Goals](#-goals)
+- [📄 License](#-license)
+
+---
+
+## ✨ Features
 
 * 📜 Clean, PEP 621-compliant `pyproject.toml`
 * 🧱 Hybrid support for both CLI (`myproject`, `python -m myproject`) and importable library
 * 📁 Source layout with `src/myproject/` package
 * ✅ Static analysis: `ruff` (linting, formatting), `mypy` (type checking)
 * 🧪 Testing: `pytest`, `coverage`, full CLI test suite
-* 📋 Pre-commit hook support
+* 👋 Pre-commit hook support
 * 🔁 GitHub Actions for CI: test, lint, typecheck, coverage
 * 🛠 Makefile for automation (dev/test/release)
 
 ---
 
-## 📂 Project Structure
+## 📦 Project Structure
+
+### 📂 Structure
 
 ```
 python-project-template/
@@ -45,6 +62,22 @@ python-project-template/
         └── demo.ipynb                ← Manual CLI dev/test notebook
 ```
 
+### 🧱 Architecture
+
+The project is organized for **modularity, reusability, and clarity**:
+
+* `src/myproject/__main__.py` allows direct module execution (`python -m myproject`)
+* `cli.py` contains CLI logic separated from business logic
+* `cli_color_utils.py` centralizes color formatting and ANSI handling
+* `constants.py` stores reusable constants like exit codes and enums
+* CLI and library components are **cleanly separated** to enable easy removal of CLI for a library-only project
+
+This architecture ensures:
+
+* **Separation of concerns** between CLI and core logic
+* **Extensibility** for growing features
+* **Testability** with isolated units for CLI and internals
+
 ---
 
 ## 🚀 Quickstart
@@ -57,7 +90,7 @@ source .venv/bin/activate  # or: .venv\Scripts\activate on Windows
 make develop               # or: pip install -e .[dev]
 ```
 
-### 🖥 CLI Usage
+### 🗅 CLI Usage
 
 ```bash
 myproject --version
@@ -68,27 +101,26 @@ python -m myproject --version
 
 ---
 
-## 🧑‍💻 Developer Guide
+## 🧑‍💼 Developer Guide
 
 ### 🛠 Makefile Commands
 
-| Command              | Description                                 |
-|----------------------|---------------------------------------------|
-| `make help`          | Show available commands                     |
-| `make install`       | Install package (editable mode)             |
-| `make develop`       | Install with dev dependencies               |
-| `make lint`          | Run Ruff and MyPy                           |
-| `make format`        | Auto-format with Ruff                       |
-| `make test`          | Run all tests                               |
-| `make test-fast`     | Re-run only last failed tests               |
-| `make coverage`      | Show test coverage in terminal              |
-| `make coverage-xml`  | Generate XML for CI or Coveralls            |
-| `make check-all`     | Run format, lint, and test coverage         |
-| `make precommit`     | Install pre-commit hooks                    |
-| `make precommit-run` | Run all pre-commit hooks                    |
-| `make build`         | Build package for distribution              |
-| `make clean`         | Remove dist/build artifacts                 |
-
+| Command              | Description                         |
+| -------------------- | ----------------------------------- |
+| `make help`          | Show available commands             |
+| `make install`       | Install package (editable mode)     |
+| `make develop`       | Install with dev dependencies       |
+| `make lint`          | Run Ruff and MyPy                   |
+| `make format`        | Auto-format with Ruff               |
+| `make test`          | Run all tests                       |
+| `make test-fast`     | Re-run only last failed tests       |
+| `make coverage`      | Show test coverage in terminal      |
+| `make coverage-xml`  | Generate XML for CI or Coveralls    |
+| `make check-all`     | Run format, lint, and test coverage |
+| `make precommit`     | Install pre-commit hooks            |
+| `make precommit-run` | Run all pre-commit hooks            |
+| `make build`         | Build package for distribution      |
+| `make clean`         | Remove dist/build artifacts         |
 
 You can also run tools directly:
 
