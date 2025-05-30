@@ -166,8 +166,9 @@ pre-commit run --all-files
 2. Build and publish:
 
    ```bash
+   make clean
    make build
-   twine upload dist/*
+   make publish
    ```
 
 3. For TestPyPI:
