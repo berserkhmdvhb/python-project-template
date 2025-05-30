@@ -52,8 +52,10 @@ coverage.xml
 # PyCharm
 .idea/
 
-# Logs
-*.log
+# Logs (recursive)
+**/*.log
+**/*.log.*
+
 
 # OS metadata
 .DS_Store
