@@ -1,4 +1,5 @@
 import sys
+import os
 import subprocess
 import logging
 import tempfile
@@ -31,15 +32,47 @@ def clear_myproject_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Clears all MYPROJECT_* environment variables used in configuration.
     Automatically applied before each test but also usable explicitly.
+    Skips DOTENV_PATH if _MYPROJECT_KEEP_DOTENV_PATH is set.
     """
-    for var in [
+    vars_to_clear = [
         "MYPROJECT_ENV",
         "MYPROJECT_LOG_MAX_BYTES",
         "MYPROJECT_LOG_BACKUP_COUNT",
         "MYPROJECT_LOG_LEVEL",
-        "DOTENV_PATH",
-    ]:
+    ]
+
+    if not os.environ.get("_MYPROJECT_KEEP_DOTENV_PATH"):
+        vars_to_clear.append("DOTENV_PATH")
+
+    for var in vars_to_clear:
         monkeypatch.delenv(var, raising=False)
+
+
+# --- Helper to reload settings fresh from source, with optional dotenv path ---
+@pytest.fixture
+def load_fresh_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[Path | None], object]:
+    """
+    Returns a function to reload and return fresh myproject.settings.
+    Optionally sets a custom DOTENV_PATH before loading.
+    Useful in tests that dynamically create .env files.
+    """
+
+    def _load(dotenv_path: Path | None = None) -> object:
+        monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
+
+        if dotenv_path:
+            monkeypatch.setenv("DOTENV_PATH", str(dotenv_path))
+
+        import myproject.settings as settings
+        import importlib
+
+        importlib.reload(settings)
+        settings.load_settings()
+        return settings
+
+    return _load
 
 
 # --- Temporary log directory fixture ---

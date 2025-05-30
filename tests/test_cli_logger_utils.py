@@ -1,11 +1,15 @@
 import logging
-from logging.handlers import RotatingFileHandler
+import importlib
+import time
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
 
-from myproject.cli_logger_utils import setup_logging, teardown_logger
+from myproject.cli_logger_utils import setup_logging, teardown_logger, EnvironmentFilter
+from myproject import settings as original_settings
 
 
-def test_setup_logging_uses_monkeypatched_dir(patched_settings):
+def test_setup_logging_uses_monkeypatched_dir(patched_settings, clean_myproject_logger):
+    """setup_logging should attach handlers using patched log directory."""
     log_dir = patched_settings
     setup_logging(reset=True, log_dir=log_dir)
     logger = logging.getLogger("myproject")
@@ -25,18 +29,16 @@ def test_setup_logging_uses_monkeypatched_dir(patched_settings):
     ), "Log file path mismatch"
 
 
-def test_environment_filter_injected_in_log_record(monkeypatch, tmp_path):
+def test_environment_filter_adds_env(monkeypatch, tmp_path, clean_myproject_logger):
+    """EnvironmentFilter should inject 'env' attribute into log records."""
     monkeypatch.chdir(tmp_path)
-
-    import myproject.settings as settings
-    import myproject.cli_logger_utils as cli_logger_utils
 
     logger = logging.getLogger("test_env_filter")
     logger.setLevel(logging.DEBUG)
     logger.handlers.clear()
 
     handler = logging.StreamHandler()
-    handler.addFilter(cli_logger_utils.EnvironmentFilter())
+    handler.addFilter(EnvironmentFilter())
     logger.addHandler(handler)
 
     record = logger.makeRecord(
@@ -54,13 +56,14 @@ def test_environment_filter_injected_in_log_record(monkeypatch, tmp_path):
 
     assert hasattr(record, "env"), "LogRecord missing 'env' attribute"
     assert (
-        record.env == settings.get_environment()
+        record.env == original_settings.get_environment()
     ), "Incorrect 'env' value in LogRecord"
 
-    teardown_logger(logger)
 
-
-def test_setup_logging_respects_log_level_and_dir(tmp_path, monkeypatch):
+def test_setup_logging_respects_log_level_and_dir(
+    tmp_path, monkeypatch, clean_myproject_logger
+):
+    """setup_logging should apply log level and output directory."""
     monkeypatch.setenv("MYPROJECT_ENV", "UAT")
 
     setup_logging(log_dir=tmp_path, log_level=logging.WARNING, reset=True)
@@ -75,10 +78,9 @@ def test_setup_logging_respects_log_level_and_dir(tmp_path, monkeypatch):
         Path(fileh.baseFilename).parent.resolve() == tmp_path.resolve()
     ), "File handler path mismatch"
 
-    teardown_logger(logger)
 
-
-def test_reset_option_controls_duplication(patched_settings):
+def test_setup_logging_respects_reset_flag(patched_settings, clean_myproject_logger):
+    """setup_logging should clear handlers when reset=True and preserve when reset=False."""
     log_dir = patched_settings
     logger = logging.getLogger("myproject")
 
@@ -90,8 +92,7 @@ def test_reset_option_controls_duplication(patched_settings):
     assert count1 == count2, "Handler count changed with reset=False"
 
     setup_logging(reset=True, log_dir=log_dir)
-    count3 = len(logger.handlers)
-    assert count3 == 2, "Expected two handlers after reset=True"
+    assert len(logger.handlers) == 2, "Expected two handlers after reset=True"
 
     logger.addHandler(logging.StreamHandler())
     assert len(logger.handlers) == 3, "Failed to manually add third handler"
@@ -99,10 +100,9 @@ def test_reset_option_controls_duplication(patched_settings):
     setup_logging(reset=True, log_dir=log_dir)
     assert len(logger.handlers) == 2, "Reset=True did not clean up handlers"
 
-    teardown_logger(logger)
 
-
-def test_teardown_logger_clears_all():
+def test_teardown_logger_removes_all_handlers(clean_myproject_logger):
+    """teardown_logger should remove all attached handlers."""
     logger = logging.getLogger("myproject")
     h1 = logging.StreamHandler()
     h2 = logging.StreamHandler()
@@ -115,41 +115,34 @@ def test_teardown_logger_clears_all():
     assert logger.handlers == [], "Handlers not cleared after teardown"
 
 
-def test_file_rotation_parametrized(monkeypatch, tmp_path):
-    import importlib
-    import logging
-    import time
-    from myproject import settings as original_settings
-    from myproject import cli_logger_utils as logger_utils
-
+def test_rotating_file_log_behavior(monkeypatch, tmp_path, clean_myproject_logger):
+    """Rotating file handler should create and rotate log files as expected."""
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy_test")
-    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "1024")  # 1 KB
+    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "1024")
     monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "1")
     monkeypatch.delenv("DOTENV_PATH", raising=False)
     monkeypatch.chdir(tmp_path)
 
     importlib.reload(original_settings)
-    importlib.reload(logger_utils)
+    importlib.reload(importlib.import_module("myproject.cli_logger_utils"))
 
-    logger_utils.setup_logging(reset=True, log_dir=tmp_path)
+    setup_logging(reset=True, log_dir=tmp_path)
     logger = logging.getLogger("myproject")
 
-    # Write initial log entries
+    # Write enough logs to trigger rollover
     message = "x" * 300
     for _ in range(5):
         logger.debug(message)
 
-    # Manually trigger rollover
     for handler in logger.handlers:
-        if isinstance(handler, logging.handlers.RotatingFileHandler):
+        if isinstance(handler, RotatingFileHandler):
             handler.doRollover()
 
-    # Write another log line to recreate the main log file
     logger.debug("Triggering creation of new log file after rollover")
 
-    # Flush and wait
     for handler in logger.handlers:
         handler.flush()
+
     time.sleep(0.2)
 
     all_logs = list(tmp_path.glob("*"))
@@ -158,5 +151,3 @@ def test_file_rotation_parametrized(monkeypatch, tmp_path):
 
     assert main, f"Main log file missing in: {all_logs}"
     assert backups, f"Backup log file not created in: {all_logs}"
-
-    logger_utils.teardown_logger(logger)
