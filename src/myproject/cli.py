@@ -14,7 +14,6 @@ from typing import NoReturn
 def get_version() -> str:
     try:
         import myproject.constants as const
-
         return version(const.PACKAGE_NAME)
     except PackageNotFoundError:
         return "unknown (not installed)"
@@ -43,7 +42,6 @@ class LoggingArgumentParser(argparse.ArgumentParser):
 def setup_cli_logger(quiet: bool, sett) -> None:
     log_level = logging.CRITICAL if quiet else None
     from myproject.cli_logger_utils import setup_logging
-
     setup_logging(log_dir=sett.get_log_dir(), log_level=log_level, reset=True)
 
 
@@ -66,12 +64,10 @@ def main() -> None:
             print(f"Warning: dotenv path not found: {dotenv_path}", file=sys.stderr)
 
     # Load settings and reload to reflect env
+    import myproject.settings as settings
     from myproject.settings import load_settings
 
     load_settings()
-
-    import myproject.settings as settings
-
     sett = reload(settings)
 
     import myproject.constants as const
@@ -93,7 +89,7 @@ def main() -> None:
             "Environment variables may be loaded from:\n"
             "  1. --dotenv-path if provided\n"
             "  2. .env.test if PYTEST_CURRENT_TEST is set\n"
-            "  3. .env.override > .env otherwise\n"
+            "  3. .env.override > .env > .env.sample (if others missing)\n"
         ),
         parents=[early_parser],
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -128,6 +124,10 @@ def main() -> None:
 
     logger = logging.getLogger("myproject")
     setup_cli_logger(args.quiet, sett)
+
+    # Optional: show which dotenv file was used if debug flag is set
+    if os.getenv("MYPROJECT_DEBUG_ENV_LOAD") == "1" and not args.quiet:
+        print(format_info(f"[debug] Loaded environment from: {sett._resolve_dotenv_paths()[0]}", use_color))
 
     try:
         logger.info("Processing query...")

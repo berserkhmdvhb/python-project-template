@@ -2,8 +2,18 @@ include README.md
 include LICENSE.txt
 include pyproject.toml
 
-# Include PEP 561 type hint marker
+# Include sample env for documentation and fallback behavior
+include .env.sample
+
+# Include PEP 561 type hint marker (for consumers of your typed library)
 include src/myproject/py.typed
 
-# Optional: include the demo notebook
+# Include example/demo notebooks
 recursive-include tests/manual *.ipynb
+
+# Optional: Include workflow config if helpful to users
+recursive-include .github *
+
+# Optional: Include Makefile and scripts for reproducibility
+include Makefile
+recursive-include publish *

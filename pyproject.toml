@@ -10,24 +10,24 @@ license = {file = "LICENSE.txt"}
 requires-python = ">=3.9"
 
 dependencies = [
-  "colorama>=0.4.0"
+  "colorama>=0.4.0",
+  "python-dotenv>=1.0.0"
 ]
 
 [project.optional-dependencies]
 dev = [
   "build",
-  "coverage",
   "coverage==7.5.0",
   "coveralls>=3.3.2 ; python_version < '3.13'",
   "colorama",
-  "dotenv",
+  "python-dotenv",
   "mypy",
   "pre-commit",
   "pytest",
   "pytest-cov",
   "twine",
   "types-colorama",
-  "ruff",
+  "ruff"
 ]
 
 [project.scripts]
@@ -36,12 +36,6 @@ myproject = "myproject.cli:main"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
-[tool.mypy]
-exclude = "\\.ipynb$"
-
-[tool.ruff]
-exclude = ["tests/manual/*"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -52,7 +46,14 @@ where = ["src"]
 [tool.setuptools.dynamic]
 version = { attr = "myproject.__version__" }
 
-# Pytest config
+[tool.mypy]
+exclude = "\\.ipynb$"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+exclude = ["tests/manual/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--maxfail=1 -v"

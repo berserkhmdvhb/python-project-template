@@ -21,33 +21,41 @@ def is_test_mode() -> bool:
 
 
 # ---------------------------------------------------------------------
-# .env Loading
+# .env Loading (Best Practice)
 # ---------------------------------------------------------------------
 
 
 def _resolve_dotenv_paths() -> list[Path]:
-    """Determine which .env files to load based on context and env vars."""
+    """Determine prioritized .env files to load."""
     paths: list[Path] = []
 
-    # 1. Explicit override via DOTENV_PATH
-    if "DOTENV_PATH" in os.environ:
-        dotenv_path = Path(os.environ["DOTENV_PATH"])
-        if dotenv_path.is_file():
-            paths.append(dotenv_path)
-            return paths  # Explicit override takes precedence
+    # 1. Explicit override via DOTENV_PATH (test or manual debug)
+    custom_path = os.getenv("DOTENV_PATH")
+    if custom_path:
+        paths.append(Path(custom_path))
+        return paths
 
-    # 2. Test context — override all others if .env.test is present
+    # 2. Test mode: load .env.test if it exists
     if is_test_mode():
         test_path = Path.cwd() / ".env.test"
         if test_path.is_file():
             paths.append(test_path)
             return paths
-        # Fallback if no .env.test
-        paths.extend([ROOT_DIR / ".env.override", ROOT_DIR / ".env"])
 
-    # 3. Default runtime context
-    else:
-        paths.extend([ROOT_DIR / ".env.override", ROOT_DIR / ".env"])
+    # 3. Normal runtime
+    candidates = [".env.override", ".env"]
+    found_any = False
+    for candidate in candidates:
+        full_path = ROOT_DIR / candidate
+        if full_path.exists():
+            paths.append(full_path)
+            found_any = True
+
+    # 4. Fallback to .env.sample only if nothing else exists
+    if not found_any:
+        sample_path = ROOT_DIR / ".env.sample"
+        if sample_path.exists():
+            paths.append(sample_path)
 
     return paths
 
@@ -55,8 +63,9 @@ def _resolve_dotenv_paths() -> list[Path]:
 def load_settings() -> list[Path]:
     """
     Explicitly load environment variables from prioritized .env files.
+    Logs which file was loaded for transparency.
     Returns:
-        A list of loaded files (empty if none).
+        List of loaded .env file paths.
     """
     override = is_test_mode()
     loaded: list[Path] = []
@@ -64,24 +73,18 @@ def load_settings() -> list[Path]:
     for path in _resolve_dotenv_paths():
         if path.is_file():
             load_dotenv(dotenv_path=path, override=override)
+            print(f"[settings] Loaded environment variables from: {path}")
             loaded.append(path)
+            break  # Load only the first matching file
 
-    if os.getenv("MYPROJECT_DEBUG_ENV_LOAD") == "1":
-        print("[settings] Loaded environment variables from:")
-        for f in loaded:
-            print(f"  - {f}")
-            try:
-                print(f.read_text())
-            except Exception as e:
-                print(f"    [Could not read file: {e}]")
-        if not loaded:
-            print("  (no .env files were found)")
+    if not loaded:
+        print("[settings] No .env file loaded — falling back to system env or defaults.")
 
     return loaded
 
 
 # ---------------------------------------------------------------------
-# Environment helpers (Flexible Recognition, Strict Behavior)
+# Environment helpers
 # ---------------------------------------------------------------------
 
 
