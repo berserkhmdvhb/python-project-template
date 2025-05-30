@@ -12,7 +12,6 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 * [✨ Features](#-features)
 * [📦 Project Structure](#-project-structure)
-
   * [📂 Structure](#-structure)
   * [🧱 Architecture](#-architecture)
 * [🚀 Quickstart](#-quickstart)
