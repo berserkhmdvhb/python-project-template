@@ -174,6 +174,7 @@ pre-commit run --all-files
 3. For TestPyPI:
 
    ```bash
+   make clean
    make publish-test
    ```
 
