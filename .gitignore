@@ -12,6 +12,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Ignore personal/local overrides
+.env.override
+
+# Ignore test config
+.env.test
+
 # Distribution / packaging
 build/
 dist/

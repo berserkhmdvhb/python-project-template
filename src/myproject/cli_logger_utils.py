@@ -1,45 +1,48 @@
 import logging
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from typing import Optional
 
-from myproject import settings
-from myproject.constants import (
-    LOG_FORMAT,
-    LOG_FILE_NAME,
-    LOG_MAX_BYTES,
-    LOG_BACKUP_COUNT,
-)
+import myproject.constants as const
+
+# Use a central constant for the logger name
+LOGGER_NAME = "myproject"
 
 
 class EnvironmentFilter(logging.Filter):
+    """Injects the current environment (e.g., DEV, UAT, PROD) into log records."""
+
     def filter(self, record: logging.LogRecord) -> bool:
-        record.env = settings.ENVIRONMENT
+        import myproject.settings as sett
+
+        record.env = sett.get_environment()
         return True
 
 
 def setup_logging(
-    log_dir: Optional[Path] = None,
-    log_level: Optional[int] = None,
+    log_dir: Path | None = None,
+    log_level: int | None = None,
     reset: bool = False,
     return_handlers: bool = False,
 ) -> list[logging.Handler] | None:
     """
     Configure logging for both console and file output.
-    Includes environment tagging, ensures log folder exists,
-    and sets up rotating log files by size.
-    Prevents duplicate handlers on repeated setup calls unless reset=True.
+    Includes environment tagging, rotating file output, and safe reinitialization.
 
     Args:
-        log_dir: Optional custom log directory (useful for testing).
-        log_level: Optional base log level for console handler.
-        reset: If True, forcibly removes existing handlers before setup.
-        return_handlers: If True, returns list of handlers added.
-    """
-    logger = logging.getLogger("myproject")
+        log_dir: Optional override for log directory (useful in tests).
+        log_level: Console log level override (e.g., logging.DEBUG).
+        reset: If True, removes existing handlers before setting up.
+        return_handlers: If True, returns the list of created handlers.
 
-    if logger.handlers and not reset:
-        return None  # Prevent duplicate setup
+    Returns:
+        A list of handlers if `return_handlers` is True; otherwise None.
+    """
+    import myproject.settings as sett
+
+    logger = logging.getLogger(LOGGER_NAME)
+
+    if logger.hasHandlers() and not reset:
+        return None  # Avoid duplicate handlers
 
     if reset:
         for handler in logger.handlers[:]:
@@ -48,19 +51,23 @@ def setup_logging(
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
 
-    resolved_dir = Path(log_dir) if log_dir else Path(settings.LOG_DIR)
-    resolved_dir.mkdir(parents=True, exist_ok=True)
-    log_file_path = resolved_dir / LOG_FILE_NAME
+    # Ensure settings are loaded before logging setup
+    sett.load_settings()
 
-    formatter = logging.Formatter(LOG_FORMAT)
+    resolved_dir = log_dir or sett.get_log_dir()
+    resolved_dir.mkdir(parents=True, exist_ok=True)
+    log_file_path = resolved_dir / const.LOG_FILE_NAME
+
+    formatter = logging.Formatter(const.LOG_FORMAT)
     env_filter = EnvironmentFilter()
 
     # Console handler
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
-    stream_handler.addFilter(env_filter)
+    if not any(isinstance(f, EnvironmentFilter) for f in stream_handler.filters):
+        stream_handler.addFilter(env_filter)
     stream_handler.setLevel(
-        log_level or (logging.DEBUG if settings.IS_DEV else logging.INFO)
+        log_level or (logging.DEBUG if sett.is_dev() else logging.INFO)
     )
     logger.addHandler(stream_handler)
 
@@ -68,17 +75,18 @@ def setup_logging(
     file_handler = RotatingFileHandler(
         filename=log_file_path,
         mode="a",
-        maxBytes=LOG_MAX_BYTES,
-        backupCount=LOG_BACKUP_COUNT,
+        maxBytes=sett.get_log_max_bytes(),
+        backupCount=sett.get_log_backup_count(),
         encoding="utf-8",
         delay=True,
     )
     file_handler.setFormatter(formatter)
-    file_handler.addFilter(env_filter)
+    if not any(isinstance(f, EnvironmentFilter) for f in file_handler.filters):
+        file_handler.addFilter(env_filter)
     file_handler.setLevel(logging.DEBUG)
     logger.addHandler(file_handler)
 
-    if settings.IS_DEV:
+    if sett.is_dev():
         logger.debug(f"Logging initialized in {resolved_dir} with level DEBUG")
 
     return [stream_handler, file_handler] if return_handlers else None
@@ -86,8 +94,10 @@ def setup_logging(
 
 def teardown_logger(logger: logging.Logger) -> None:
     """
-    Properly flush, close, and remove all handlers from a logger.
-    Avoids file lock issues, especially on Windows.
+    Cleanly remove all handlers from a logger to avoid duplication or file lock issues.
+
+    Args:
+        logger: The logger instance to clean up.
     """
     for handler in logger.handlers[:]:
         try:
@@ -99,3 +109,6 @@ def teardown_logger(logger: logging.Logger) -> None:
         except Exception:
             pass
         logger.removeHandler(handler)
+
+
+__all__: list[str] = ["setup_logging", "teardown_logger", "EnvironmentFilter"]

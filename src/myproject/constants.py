@@ -1,54 +1,46 @@
-import os
 from typing import Final, Literal
+from pathlib import Path
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Package Info
-# =============================================================================
-
+# -----------------------------------------------------------------------------
 PACKAGE_NAME: Final = "myproject"
 DEFAULT_ENCODING: Final = "utf-8"
 
-# =============================================================================
-# Exit Codes (Unix-style)
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# Exit Codes (Unix‐style)
+# -----------------------------------------------------------------------------
 EXIT_SUCCESS: Final = 0
 EXIT_INVALID_USAGE: Final = 1
 EXIT_ARGPARSE_ERROR: Final = 2
 EXIT_CANCELLED: Final = 130
 
-# =============================================================================
-# Logging Configuration
-# =============================================================================
-
-ENV_LOG_LEVEL: Final = "MYPROJECT_LOG_LEVEL"
-DEFAULT_LOG_LEVEL: Final = os.getenv(ENV_LOG_LEVEL, "INFO")
-LOG_FORMAT: Final = "[%(asctime)s] [%(levelname)s] [%(env)s] %(message)s"
-
-LOG_DIR: Final = "logs"
+# -----------------------------------------------------------------------------
+# Logging (static pieces)
+# -----------------------------------------------------------------------------
+# This is just the filename (not full path)
 LOG_FILE_NAME: Final = "info.log"
-LOG_FILE_PATH: Final = os.path.join(LOG_DIR, LOG_FILE_NAME)
+# Format string for all handlers
+LOG_FORMAT: Final = "[%(asctime)s] [%(levelname)s] [%(env)s] %(message)s"
+# Default Root Directory
+DEFAULT_LOG_ROOT: Final = Path("logs")
 
-# Rotating log settings (read from .env or use defaults)
-LOG_MAX_BYTES = int(os.getenv("LOG_MAX_BYTES", 1_000_000))
-LOG_BACKUP_COUNT = int(os.getenv("LOG_BACKUP_COUNT", 5))
+# -----------------------------------------------------------------------------
+# CLI Settings
+# -----------------------------------------------------------------------------
+ColorMode = Literal["auto", "always", "never"]
+DEFAULT_THRESHOLD: Final = 0.7
 
-# =============================================================================
-# Environment Variables
-# =============================================================================
-
-ENV_CACHE_PATH: Final = "MYPROJECT_CACHE"
-
-# =============================================================================
+# -----------------------------------------------------------------------------
 # I/O and Encoding
-# =============================================================================
-
+# -----------------------------------------------------------------------------
 SUPPORTED_FILE_FORMATS: Final = (".json", ".csv", ".txt")
 CLI_OUTPUT_ENCODING: Final = "utf-8"
 
-# =============================================================================
-# CLI Settings
-# =============================================================================
-
-ColorMode = Literal["auto", "always", "never"]
-DEFAULT_THRESHOLD: Final = 0.7
+# -----------------------------------------------------------------------------
+# Environment variable names
+# -----------------------------------------------------------------------------
+ENV_ENVIRONMENT: Final = "MYPROJECT_ENV"
+ENV_LOG_MAX_BYTES: Final = "LOG_MAX_BYTES"
+ENV_LOG_BACKUP_COUNT: Final = "LOG_BACKUP_COUNT"
+ENV_LOG_LEVEL: Final = "MYPROJECT_LOG_LEVEL"
