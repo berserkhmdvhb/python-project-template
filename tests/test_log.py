@@ -1,11 +1,16 @@
-import logging
-from pathlib import Path
-from logging.handlers import RotatingFileHandler
 import importlib
+import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Callable
+
+import pytest
 
 import myproject.constants as const
 import myproject.settings as sett
 from myproject.cli_logger_utils import setup_logging
+
+EXPECTED_LOG_HANDLER_COUNT = 2
 
 
 def test_setup_logging_creates_log_file(temp_log_dir: Path) -> None:
@@ -26,7 +31,11 @@ def test_setup_logging_creates_log_file(temp_log_dir: Path) -> None:
     assert "Test error log" in contents
 
 
-def test_console_logging(temp_log_dir: Path, patch_env, capsys) -> None:
+def test_console_logging(
+    temp_log_dir: Path,
+    patch_env: Callable[[str], None],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Test that console output is working and includes log messages."""
     patch_env("DEV")
     setup_logging(log_dir=temp_log_dir, log_level=logging.DEBUG, reset=True)
@@ -48,12 +57,14 @@ def test_logger_is_idempotent(temp_log_dir: Path) -> None:
     setup_logging(log_dir=temp_log_dir, log_level=logging.DEBUG, reset=True)
     second_count = len(logger.handlers)
 
-    # Should be exactly 2: one console + one file
-    assert first_count == 2
-    assert second_count == 2
+    assert first_count == EXPECTED_LOG_HANDLER_COUNT
+    assert second_count == EXPECTED_LOG_HANDLER_COUNT
 
 
-def test_environment_filter_in_logs(temp_log_dir: Path, patch_env) -> None:
+def test_environment_filter_in_logs(
+    temp_log_dir: Path,
+    patch_env: Callable[[str], None],
+) -> None:
     """Check that the log output includes the correct environment tag."""
     patch_env("TEST")
     setup_logging(log_dir=temp_log_dir, log_level=logging.DEBUG, reset=True)
@@ -67,19 +78,20 @@ def test_environment_filter_in_logs(temp_log_dir: Path, patch_env) -> None:
     assert f"[{sett.get_environment()}]" in contents
 
 
-def test_log_rotation(temp_log_dir: Path, monkeypatch) -> None:
+def test_log_rotation(
+    temp_log_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test that log rotation creates backup files when size exceeds maxBytes."""
     monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "50")
     monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "1")
 
-    importlib.reload(sett)  # Pick up patched environment
+    importlib.reload(sett)  # Reload settings to pick up patched environment
 
     setup_logging(log_dir=temp_log_dir, log_level=logging.DEBUG, reset=True)
     logger = logging.getLogger("myproject")
 
-    file_handler = next(
-        h for h in logger.handlers if isinstance(h, RotatingFileHandler)
-    )
+    file_handler = next(h for h in logger.handlers if isinstance(h, RotatingFileHandler))
 
     logger.info("Rotating this oversized message: %s", "X" * 500)
     logger.info("Triggering rollover with a second message")

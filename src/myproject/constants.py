@@ -1,5 +1,5 @@
-from typing import Final, Literal
 from pathlib import Path
+from typing import Final, Literal
 
 # -----------------------------------------------------------------------------
 # Package Info
@@ -8,7 +8,7 @@ PACKAGE_NAME: Final = "myproject"
 DEFAULT_ENCODING: Final = "utf-8"
 
 # -----------------------------------------------------------------------------
-# Exit Codes (Unix‐style)
+# Exit Codes (Unix style)
 # -----------------------------------------------------------------------------
 EXIT_SUCCESS: Final = 0
 EXIT_INVALID_USAGE: Final = 1

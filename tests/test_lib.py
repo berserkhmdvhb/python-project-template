@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import pytest
 
-from myproject import __version__
 import myproject.constants as const
-from myproject.core import sanitize_input, example_hello, process_query
+from myproject import __version__
+from myproject.core import example_hello, process_query, sanitize_input
 
 
 def test_version_is_string_and_nonempty() -> None:
@@ -25,7 +27,7 @@ def test_default_threshold_within_bounds() -> None:
 
 
 @pytest.mark.parametrize(
-    "value, should_raise",
+    ("value", "should_raise"),
     [
         (None, True),
         ("", True),
@@ -34,20 +36,24 @@ def test_default_threshold_within_bounds() -> None:
         ("  hello  ", False),
     ],
 )
-def test_process_query_edge_cases(value: str | None, should_raise: bool) -> None:
+def test_process_query_edge_cases(
+    value: str | None,
+    *,
+    should_raise: bool,
+) -> None:
     """Validate process_query handles optional and malformed input robustly."""
     if should_raise:
         with pytest.raises(ValueError, match="cannot be empty"):
             process_query(value)
     else:
-        assert isinstance(value, str)  # Type guard for Mypy
+        assert isinstance(value, str)
         result = process_query(value)
         expected = f"Processed query: {value.strip()}"
         assert result == expected, f"Expected '{expected}', got '{result}'"
 
 
 @pytest.mark.parametrize(
-    "raw, expected",
+    ("raw", "expected"),
     [
         (" hello ", "hello"),
         ("\tworld\n", "world"),

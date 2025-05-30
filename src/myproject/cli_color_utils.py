@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import Final
 
@@ -20,7 +21,10 @@ COLOR_INFO: Final = Fore.BLUE
 COLOR_SUCCESS: Final = Fore.GREEN
 COLOR_WARNING: Final = Fore.MAGENTA
 COLOR_DEBUG: Final = Fore.LIGHTBLACK_EX
+COLOR_SETTINGS: Final = Fore.LIGHTBLACK_EX  # Matches DEBUG color
 RESET: Final = Style.RESET_ALL
+
+logger = logging.getLogger("myproject")
 
 
 def should_use_color(mode: ColorMode) -> bool:
@@ -44,37 +48,43 @@ def colorize_line(line: str) -> str:
     return line
 
 
-def print_lines(lines: list[str], use_color: bool) -> None:
-    """Print a list of lines with optional color formatting."""
+def print_lines(lines: list[str], *, use_color: bool) -> None:
+    """Log a list of lines with optional color formatting."""
     for line in lines:
-        print(colorize_line(line) if use_color else line)
+        logger.info(colorize_line(line) if use_color else line)
 
 
-def format_error(message: str, use_color: bool = True) -> str:
+def format_error(message: str, *, use_color: bool = True) -> str:
     """Format error message with [ERROR] prefix."""
     prefix = f"{COLOR_ERROR}[ERROR]{RESET}" if use_color else "[ERROR]"
     return f"{prefix} {message}"
 
 
-def format_info(message: str, use_color: bool = True) -> str:
+def format_info(message: str, *, use_color: bool = True) -> str:
     """Format info message with [INFO] prefix."""
     prefix = f"{COLOR_INFO}[INFO]{RESET}" if use_color else "[INFO]"
     return f"{prefix} {message}"
 
 
-def format_success(message: str, use_color: bool = True) -> str:
+def format_success(message: str, *, use_color: bool = True) -> str:
     """Format success message with [OK] prefix."""
     prefix = f"{COLOR_SUCCESS}[OK]{RESET}" if use_color else "[OK]"
     return f"{prefix} {message}"
 
 
-def format_warning(message: str, use_color: bool = True) -> str:
+def format_warning(message: str, *, use_color: bool = True) -> str:
     """Format warning message with [WARNING] prefix."""
     prefix = f"{COLOR_WARNING}[WARNING]{RESET}" if use_color else "[WARNING]"
     return f"{prefix} {message}"
 
 
-def format_debug(message: str, use_color: bool = True) -> str:
+def format_debug(message: str, *, use_color: bool = True) -> str:
     """Format debug message with [DEBUG] prefix."""
     prefix = f"{COLOR_DEBUG}[DEBUG]{RESET}" if use_color else "[DEBUG]"
+    return f"{prefix} {message}"
+
+
+def format_settings(message: str, *, use_color: bool = True) -> str:
+    """Format settings message with [SETTINGS] prefix."""
+    prefix = f"{COLOR_SETTINGS}[SETTINGS]{RESET}" if use_color else "[SETTINGS]"
     return f"{prefix} {message}"

@@ -1,46 +1,56 @@
-import sys
+from __future__ import annotations
+
+import importlib
+import logging
 import os
 import subprocess
-import logging
+import sys
 import tempfile
-import importlib
+from collections.abc import Generator
 from io import StringIO
 from pathlib import Path
-from collections.abc import Generator
-from typing import Callable
+from types import ModuleType
+from typing import TYPE_CHECKING, Callable, Final
 
 import pytest
+
 from myproject.cli_logger_utils import teardown_logger
 
+if TYPE_CHECKING:
+    from _pytest.monkeypatch import MonkeyPatch
 
-# --- Auto-clean logger before and after each test ---
+# ---------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------
+
+LOGGER_NAME: Final = "myproject"
+
+# ---------------------------------------------------------------------
+# Auto-clean logger before and after each test
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture(autouse=True)
 def clean_myproject_logger() -> Generator[None, None, None]:
-    """
-    Fully tears down the 'myproject' logger before and after each test
-    to avoid handler duplication or stale state.
-    """
-    logger = logging.getLogger("myproject")
+    logger = logging.getLogger(LOGGER_NAME)
     teardown_logger(logger)
     yield
     teardown_logger(logger)
 
 
-# --- Clear relevant MYPROJECT_* environment variables ---
+# ---------------------------------------------------------------------
+# Clear relevant MYPROJECT_* environment variables
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture(autouse=True)
-def clear_myproject_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """
-    Clears all MYPROJECT_* environment variables used in configuration.
-    Automatically applied before each test but also usable explicitly.
-    Skips DOTENV_PATH if _MYPROJECT_KEEP_DOTENV_PATH is set.
-    """
+def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
     vars_to_clear = [
         "MYPROJECT_ENV",
         "MYPROJECT_LOG_MAX_BYTES",
         "MYPROJECT_LOG_BACKUP_COUNT",
         "MYPROJECT_LOG_LEVEL",
     ]
-
     if not os.environ.get("_MYPROJECT_KEEP_DOTENV_PATH"):
         vars_to_clear.append("DOTENV_PATH")
 
@@ -48,25 +58,21 @@ def clear_myproject_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(var, raising=False)
 
 
-# --- Helper to reload settings fresh from source, with optional dotenv path ---
+# ---------------------------------------------------------------------
+# Reload settings fresh from source
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture
 def load_fresh_settings(
-    monkeypatch: pytest.MonkeyPatch,
-) -> Callable[[Path | None], object]:
-    """
-    Returns a function to reload and return fresh myproject.settings.
-    Optionally sets a custom DOTENV_PATH before loading.
-    Useful in tests that dynamically create .env files.
-    """
-
-    def _load(dotenv_path: Path | None = None) -> object:
+    monkeypatch: MonkeyPatch,
+) -> Callable[[Path | None], ModuleType]:
+    def _load(dotenv_path: Path | None = None) -> ModuleType:
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
-
         if dotenv_path:
-            monkeypatch.setenv("DOTENV_PATH", str(dotenv_path))
+            monkeypatch.setenv("DOTENV_PATH", str(dotenv_path.resolve()))
 
-        import myproject.settings as settings
-        import importlib
+        from myproject import settings
 
         importlib.reload(settings)
         settings.load_settings()
@@ -75,113 +81,110 @@ def load_fresh_settings(
     return _load
 
 
-# --- Temporary log directory fixture ---
-@pytest.fixture
-def temp_log_dir(monkeypatch) -> Generator[Path, None, None]:
-    """
-    Creates a temporary log directory and patches get_log_dir() to use it.
-    Does NOT patch log-related config values like max bytes or backup count.
-    """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir)
+# ---------------------------------------------------------------------
+# Temporary log directory fixture
+# ---------------------------------------------------------------------
 
+
+@pytest.fixture
+def temp_log_dir(monkeypatch: MonkeyPatch) -> Generator[Path, None, None]:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir).resolve()
         monkeypatch.setenv("MYPROJECT_ENV", "TEST")
 
-        import myproject.settings as sett
         import myproject.cli_logger_utils as clu
+        import myproject.settings as sett
 
         importlib.reload(sett)
         importlib.reload(clu)
 
         monkeypatch.setattr("myproject.settings.get_log_dir", lambda: tmp_path)
-
         yield tmp_path
+        teardown_logger(logging.getLogger(LOGGER_NAME))
 
-        teardown_logger(logging.getLogger("myproject"))
+
+# ---------------------------------------------------------------------
+# Patched logging config for DEV
+# ---------------------------------------------------------------------
 
 
-# --- Fully patched settings for logging ---
 @pytest.fixture
-def patched_settings(monkeypatch, tmp_path) -> Path:
-    """
-    Patch environment and settings related to logging.
-    Reloads both settings and logger modules.
-    """
+def patched_settings(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setenv("MYPROJECT_ENV", "DEV")
     monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "50")
     monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "1")
 
-    import myproject.settings as sett
     import myproject.cli_logger_utils as clu
+    import myproject.settings as sett
 
     importlib.reload(sett)
     importlib.reload(clu)
 
-    monkeypatch.setattr("myproject.settings.get_log_dir", lambda: tmp_path)
+    monkeypatch.setattr("myproject.settings.get_log_dir", lambda: tmp_path.resolve())
+    return tmp_path.resolve()
 
-    return tmp_path
+
+# ---------------------------------------------------------------------
+# Patch only the environment name
+# ---------------------------------------------------------------------
 
 
-# --- Patch just the environment name ---
 @pytest.fixture
-def patch_env(monkeypatch: pytest.MonkeyPatch) -> Callable[[str], None]:
-    """
-    Fixture returning a helper function to patch MYPROJECT_ENV.
-    """
-
+def patch_env(monkeypatch: MonkeyPatch) -> Callable[[str], None]:
     def _patch(env_name: str) -> None:
         monkeypatch.setenv("MYPROJECT_ENV", env_name)
 
     return _patch
 
 
-# --- Capture logs in a StringIO stream ---
+# ---------------------------------------------------------------------
+# Log stream capture
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture
 def log_stream() -> Generator[StringIO, None, None]:
-    """
-    Attach a temporary stream handler to capture log output.
-    """
     stream = StringIO()
     handler = logging.StreamHandler(stream)
     formatter = logging.Formatter("[%(levelname)s] %(message)s")
     handler.setFormatter(formatter)
 
-    logger = logging.getLogger("myproject")
+    logger = logging.getLogger(LOGGER_NAME)
     logger.addHandler(handler)
-
     yield stream
 
     logger.removeHandler(handler)
     handler.close()
 
 
-# --- CLI subprocess runner ---
+# ---------------------------------------------------------------------
+# CLI subprocess runner
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture
 def run_cli(tmp_path: Path) -> Callable[..., tuple[str, str, int]]:
-    """
-    Returns a function to invoke the CLI via subprocess with controlled env vars.
-    Automatically injects a dummy .env file if none is specified.
-    """
-
     def _run(*args: str, env: dict[str, str] | None = None) -> tuple[str, str, int]:
         cmd = [sys.executable, "-m", "myproject", *args]
         if "--color=never" not in cmd:
             cmd.append("--color=never")
 
         full_env = {
-            "PYTHONPATH": str(Path.cwd()),
+            **os.environ,
             "MYPROJECT_LOG_MAX_BYTES": "10000",
             "MYPROJECT_LOG_BACKUP_COUNT": "2",
             **(env or {}),
         }
 
-        # Apply DOTENV_PATH explicitly if provided in args
+        if "PYTHONPATH" not in full_env:
+            full_env["PYTHONPATH"] = str(Path.cwd())
+
         if "--dotenv-path" in args:
             i = args.index("--dotenv-path")
             if i + 1 < len(args):
-                full_env["DOTENV_PATH"] = str(args[i + 1])
+                full_env["DOTENV_PATH"] = str(Path(args[i + 1]).resolve())
         else:
-            dummy_env = tmp_path / ".env"
+            dummy_env = (tmp_path / ".env").resolve()
             dummy_env.write_text("")
             full_env["DOTENV_PATH"] = str(dummy_env)
 

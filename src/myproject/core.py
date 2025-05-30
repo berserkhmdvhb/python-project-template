@@ -1,5 +1,9 @@
 """Core logic for myproject."""
 
+from __future__ import annotations
+
+_QUERY_EMPTY_ERROR = "Query string cannot be empty."
+
 
 def sanitize_input(value: str | None) -> str:
     """
@@ -15,7 +19,7 @@ def sanitize_input(value: str | None) -> str:
         ValueError: If input is None or contains only whitespace.
     """
     if value is None or not value.strip():
-        raise ValueError("Query string cannot be empty.")
+        raise ValueError(_QUERY_EMPTY_ERROR)
     return value.strip()
 
 

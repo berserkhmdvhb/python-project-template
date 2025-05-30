@@ -1,21 +1,33 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.0  # Use latest stable version from https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4  # ← Latest Ruff version that supports [tool.ruff.lint]
     hooks:
       - id: ruff
-        exclude: \.ipynb$
-      - id: ruff-format
-        exclude: \.ipynb$
+        name: Ruff linter
+        args: ["check", "src", "tests"]
+        exclude: ^tests/manual/|\.ipynb$
+        types: [python]
 
+      - id: ruff-format
+        name: Ruff formatter
+        args: ["format", "src", "tests"]
+        exclude: ^tests/manual/|\.ipynb$
+        types: [python]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0  # Use the version you're using locally
+    rev: v1.10.0  # ← Match latest version or your local version
     hooks:
       - id: mypy
+        name: Mypy type checker
+        args: ["--config-file=pyproject.toml"]
         exclude: \.ipynb$
+        types: [python]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
+        name: Fix missing newline at EOF
+
       - id: trailing-whitespace
+        name: Trim trailing whitespace

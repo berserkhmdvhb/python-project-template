@@ -3,10 +3,10 @@ name = "myproject"
 dynamic = ["version"]
 description = "A modern Python project template with optional CLI support."
 authors = [
-  {name = "Your Name", email = "your@email.com"}
+  { name = "Your Name", email = "your@email.com" }
 ]
 readme = "README.md"
-license = {file = "LICENSE.txt"}
+license = { file = "LICENSE.txt" }
 requires-python = ">=3.9"
 
 dependencies = [
@@ -17,17 +17,17 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "build",
+  "colorama",
   "coverage==7.5.0",
   "coveralls>=3.3.2 ; python_version < '3.13'",
-  "colorama",
-  "python-dotenv",
   "mypy",
   "pre-commit",
   "pytest",
   "pytest-cov",
+  "python-dotenv",
+  "ruff",
   "twine",
-  "types-colorama",
-  "ruff"
+  "types-colorama"
 ]
 
 [project.scripts]
@@ -46,14 +46,41 @@ where = ["src"]
 [tool.setuptools.dynamic]
 version = { attr = "myproject.__version__" }
 
+# ----------------------------
+# Mypy Configuration
+# ----------------------------
 [tool.mypy]
+files = ["src", "tests"]
 exclude = "\\.ipynb$"
 strict = true
 ignore_missing_imports = true
+show_error_codes = true
+pretty = true
 
+# ----------------------------
+# Ruff Configuration
+# ----------------------------
 [tool.ruff]
+line-length = 100
+target-version = "py39"
+fix = true
+show-fixes = true
 exclude = ["tests/manual/*"]
 
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D",       # pydocstyle: disable docstring requirements
+  "TD",      # allow TODO comments
+  "FIX002",  # allow FIXME comments
+  "TC003",   # allow runtime use of typing-only imports like `Path`
+  "COM812"   # Avoid conflict with Ruff formatter
+]
+per-file-ignores = { "tests/conftest.py" = ["S603"], "tests/*" = ["S101"] }
+
+# ----------------------------
+# Pytest Configuration
+# ----------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--maxfail=1 -v"

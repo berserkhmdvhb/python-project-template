@@ -17,6 +17,7 @@ help:
 	@echo "  coverage-xml        Generate XML coverage (for CI or Coveralls)"
 	@echo "  check-all           Run format-check, lint, and full test suite"
 	@echo "  precommit           Install pre-commit hook"
+	@echo "  precommit-check     Dry run pre-commit hook"
 	@echo "  precommit-run       Run all pre-commit hooks"
 	@echo "  build               Build package for distribution"
 	@echo "  clean               Remove build artifacts"
@@ -68,6 +69,9 @@ check-all: format-check lint coverage
 # ------------------------------------------------------------------------------
 precommit:
 	pre-commit install
+
+precommit-check:
+	pre-commit run --all-files --hook-stage manual --verbose --show-diff-on-failure --color always --config .pre-commit-config.yaml
 
 precommit-run:
 	pre-commit run --all-files
