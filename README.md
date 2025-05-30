@@ -34,6 +34,8 @@ A **modern, minimal, and reusable Python project template** for building librari
 * 📝 Log management:
   - Per-environment log directories (`logs/DEV`, `logs/UAT`, `logs/PROD`)
   - Rotating logs by size with configurable `LOG_MAX_BYTES` and `LOG_BACKUP_COUNT`
+  - Clean setup/teardown support for test isolation and CLI runs
+* 🧪 Modular and reusable fixtures in `conftest.py`
 * 👋 Pre-commit hooks for code quality
 * 🔁 GitHub Actions for CI (lint, typecheck, tests, coverage)
 * 🛠 Makefile for automation (dev, test, lint, release, publish)
@@ -69,8 +71,11 @@ python-project-template/
 └── tests/
     ├── conftest.py                   ← Shared fixtures & logger cleanup
     ├── test_cli.py                   ← CLI integration tests
+    ├── test_cli_env.py               ← CLI behavior under various envs
+    ├── test_cli_logger_utils.py      ← Logging setup/teardown and rotation
     ├── test_lib.py                   ← Core library tests
-    ├── test_log.py                   ← Logging behavior & rotation tests
+    ├── test_log.py                   ← Isolated logger rotation tests
+    ├── test_settings.py              ← Configuration and env loading
     └── manual/
         └── demo.ipynb                ← Notebook for interactive testing
 ```
@@ -104,7 +109,7 @@ source .venv/bin/activate          # or .venv\Scripts\activate on Windows
 make develop                       # or: pip install -e .[dev]
 ```
 
-### 🗅 CLI Usage
+### 🖥️ CLI Usage
 
 ```bash
 myproject --version
@@ -149,9 +154,9 @@ pre-commit run --all-files
 ## 🔁 Continuous Integration
 
 - **GitHub Actions** (`.github/workflows/tests.yml`):
-- Python 3.9–3.13 matrix
-- `make lint`, `make test`, `make coverage-xml`
-- Optional Coveralls upload
+  - Python 3.9–3.13 matrix
+  - `make lint`, `make test`, `make coverage-xml`
+  - Optional Coveralls upload
 
 ---
 
