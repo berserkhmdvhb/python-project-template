@@ -13,14 +13,14 @@ A **modern, minimal, and reusable Python project template** for building librari
 * [✨ Features](#✨-features)
 * [📦 Project Structure](#📦-project-structure)
 
-  * [📂 Structure](#📂-structure)
-  * [🧱 Architecture](#🧱-architecture)
-* [🚀 Quickstart](#🚀-quickstart)
-* [🧑‍💼 Developer Guide](#🧑‍💼-developer-guide)
-* [🔁 Continuous Integration](#🔁-continuous-integration)
-* [📦 Publishing to PyPI](#📦-publishing-to-pypi)
-* [🎯 Goals](#🎯-goals)
-* [📄 License](#📄-license)
+  * [📂 Structure](#-structure)
+  * [🧱 Architecture](#-architecture)
+* [🚀 Quickstart](#-quickstart)
+* [🧑‍💼 Developer Guide](-developer-guide)
+* [🔁 Continuous Integration](#-continuous-integration)
+* [📦 Publishing to PyPI](#-publishing-to-pypi)
+* [🎯 Goals](#-goals)
+* [📄 License](#-license)
 
 ---
 
