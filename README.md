@@ -27,7 +27,7 @@ A **modern, minimal, and reusable Python project template** for building librari
 ## ✨ Features
 
 * 📜 Modern `pyproject.toml` (PEP 621) for build and metadata
-* 🧡 Clean hybrid architecture: CLI and importable core library
+* 🧱 Clean hybrid architecture: CLI and importable core library
 * 🔧 Environment-dependent behavior (DEV, UAT, PROD, TEST)
 * 📁 Structured logging with:
 
