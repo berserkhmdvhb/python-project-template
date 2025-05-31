@@ -17,7 +17,7 @@ A **modern, minimal, and reusable Python project template** for building librari
 * [🚀 Quickstart](#-quickstart)
 * [🧑‍💼 Developer Guide](-developer-guide)
 * [🔁 Continuous Integration](#-continuous-integration)
-* [📦 Publishing to PyPI](#-publishing-to-pypi)
+* [🌐 Publishing to PyPI](#-publishing-to-pypi)
 * [🎯 Goals](#-goals)
 * [📄 License](#-license)
 
@@ -184,7 +184,7 @@ pre-commit run --all-files
 
 ---
 
-## 📦 Publishing to PyPI
+## 🌐 Publishing to PyPI
 
 1. Copy `.pypirc.sample` to `~/.pypirc` and configure credentials.
 
