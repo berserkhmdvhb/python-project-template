@@ -10,24 +10,23 @@ A **modern, minimal, and reusable Python project template** for building librari
 
 ## 📚 Table of Contents
 
-* [✨ Features](#✨-features)
-* [📦 Project Structure](#📦-project-structure)
-
-  * [📂 Structure](#📂-structure)
-  * [🧱 Architecture](#🧱-architecture)
-* [🚀 Quickstart](#🚀-quickstart)
-* [🧑‍💼 Developer Guide](#🧑‍💼-developer-guide)
-* [🔁 Continuous Integration](#🔁-continuous-integration)
-* [📦 Publishing to PyPI](#📦-publishing-to-pypi)
-* [🎯 Goals](#🎯-goals)
-* [📄 License](#📄-license)
+* [✨ Features](#-features)
+* [📦 Project Structure](#-project-structure)
+  * [📂 Structure](#-structure)
+  * [🧱 Architecture](#-architecture)
+* [🚀 Quickstart](#-quickstart)
+* [🧑‍💼 Developer Guide](-developer-guide)
+* [🔁 Continuous Integration](#-continuous-integration)
+* [📦 Publishing to PyPI](#-publishing-to-pypi)
+* [🎯 Goals](#-goals)
+* [📄 License](#-license)
 
 ---
 
 ## ✨ Features
 
 * 📜 Modern `pyproject.toml` (PEP 621) for build and metadata
-* 🧡 Clean hybrid architecture: CLI and importable core library
+* 🧱 Clean hybrid architecture: CLI and importable core library
 * 🔧 Environment-dependent behavior (DEV, UAT, PROD, TEST)
 * 📁 Structured logging with:
 
