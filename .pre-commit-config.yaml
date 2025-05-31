@@ -1,27 +1,27 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4  # ← Latest Ruff version that supports [tool.ruff.lint]
+    rev: v0.4.4
     hooks:
       - id: ruff
         name: Ruff linter
         args: ["check", "src", "tests"]
-        exclude: ^tests/manual/|\.ipynb$
         types: [python]
+        exclude: ^tests/manual/|\.ipynb$
 
       - id: ruff-format
         name: Ruff formatter
         args: ["format", "src", "tests"]
-        exclude: ^tests/manual/|\.ipynb$
         types: [python]
+        exclude: ^tests/manual/|\.ipynb$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0  # ← Match latest version or your local version
+    rev: v1.10.0
     hooks:
       - id: mypy
         name: Mypy type checker
         args: ["--config-file=pyproject.toml"]
-        exclude: \.ipynb$
         types: [python]
+        exclude: \.ipynb$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

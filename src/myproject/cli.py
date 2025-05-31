@@ -52,14 +52,13 @@ def nonempty_str(value: str) -> str:
 
 class LoggingArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
-        logger = logging.getLogger("myproject")
-        logger.error("[ERROR] %s", message)
         use_color = should_use_color("auto")
-        sys.stderr.write(
-            format_error(f"argument error: {message}", use_color=use_color) + "\n",
-        )
+
+        formatted = format_error(f"argument error: {message}", use_color=use_color)
+        sys.stderr.write(formatted + "\n\n")
         self.print_help(sys.stderr)
         self.exit(const.EXIT_INVALID_USAGE)
+
 
 
 def setup_cli_logger(*, quiet: bool, sett: ModuleType) -> None:
@@ -67,7 +66,7 @@ def setup_cli_logger(*, quiet: bool, sett: ModuleType) -> None:
     setup_logging(log_dir=sett.get_log_dir(), log_level=log_level, reset=True)
 
 
-def apply_early_env(argv: list[str] | None) -> None:
+def apply_early_env(argv: list[str] | None) -> argparse.ArgumentParser:
     early_parser = argparse.ArgumentParser(add_help=False)
     early_parser.add_argument("--dotenv-path", type=str)
     early_parser.add_argument("--env", type=str)
@@ -83,8 +82,10 @@ def apply_early_env(argv: list[str] | None) -> None:
     if early_args.env:
         os.environ["MYPROJECT_ENV"] = early_args.env.upper()
 
+    return early_parser
 
-def create_parser() -> argparse.ArgumentParser:
+
+def create_parser(early_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser = LoggingArgumentParser(
         description=(
             "MyProject CLI — a template command-line entry point.\n\n"
@@ -93,6 +94,7 @@ def create_parser() -> argparse.ArgumentParser:
             "  2. .env.test if PYTEST_CURRENT_TEST is set\n"
             "  3. .env.override > .env > .env.sample (if others missing)"
         ),
+        parents=[early_parser],
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-q", "--query", type=nonempty_str, help="Search query to process")
@@ -110,7 +112,7 @@ def print_dotenv_debug(
     use_color: bool,
 ) -> None:
     if os.getenv("MYPROJECT_DEBUG_ENV_LOAD") == "1" and not quiet:
-        dotenv_paths = sett.get_resolved_dotenv_paths()
+        dotenv_paths = sett.resolve_loaded_dotenv_paths()
         if dotenv_paths:
             msg = _ENV_LOAD_PREFIX % dotenv_paths[0]
             sys.stdout.write(format_settings(msg, use_color=use_color) + "\n")
@@ -177,13 +179,13 @@ def process_query_or_simulate(args: argparse.Namespace, sett: ModuleType) -> str
 
 
 def main(argv: list[str] | None = None) -> None:
-    apply_early_env(argv)
+    early_parser = apply_early_env(argv)
     load_settings()
     from myproject import settings as sett
 
     reload(sett)
 
-    parser = create_parser()
+    parser = create_parser(early_parser)
     args = parser.parse_args(argv)
     use_color = should_use_color(args.color)
     logger = logging.getLogger("myproject")
@@ -198,6 +200,10 @@ def main(argv: list[str] | None = None) -> None:
             )
         else:
             logger.info("Processing query...")
+
+        if not args.query:
+            parser.print_help()
+            sys.exit(const.EXIT_SUCCESS)
 
         processed = process_query_or_simulate(args, sett)
         handle_result(processed, args, sett, use_color=use_color)
