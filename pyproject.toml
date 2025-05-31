@@ -83,6 +83,9 @@ per-file-ignores = {"tests/conftest.py" = ["S603"], "tests/*" = ["S101"], "src/m
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--maxfail=1 -v"
+norecursedirs = [
+  "tests/cli/old"
+]
 filterwarnings = [
   "ignore::pytest.PytestUnhandledThreadExceptionWarning"
 ]

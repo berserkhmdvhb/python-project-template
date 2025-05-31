@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Callable, Final
 
 import pytest
 
-from myproject.cli_logger_utils import teardown_logger
+from myproject.cli.utils_logger import teardown_logger
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
