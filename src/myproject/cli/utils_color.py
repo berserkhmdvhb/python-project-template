@@ -4,7 +4,23 @@ from typing import Final
 
 from colorama import Fore, Style, init
 
-from .constants import ColorMode
+from myproject.constants import ColorMode
+
+__all__ = [
+    "COLOR_CODELINE",
+    "COLOR_HEADER",
+    "COLOR_SETTINGS",
+    "RESET",
+    "colorize_line",
+    "format_debug",
+    "format_error",
+    "format_info",
+    "format_settings",
+    "format_success",
+    "format_warning",
+    "print_lines",
+    "should_use_color",
+]
 
 # Initialize colorama (auto-reset styles after each print)
 init(autoreset=True)
@@ -48,10 +64,19 @@ def colorize_line(line: str) -> str:
     return line
 
 
-def print_lines(lines: list[str], *, use_color: bool) -> None:
-    """Log a list of lines with optional color formatting."""
+def print_lines(lines: list[str], *, use_color: bool, force_stdout: bool = False) -> None:
+    """
+    Print or log a list of lines with optional color formatting.
+
+    - If `use_color` is True and `force_stdout` is True, print directly to stdout (with color).
+    - Otherwise, log to logger.info (with or without color).
+    """
     for line in lines:
-        logger.info(colorize_line(line) if use_color else line)
+        colored = colorize_line(line) if use_color else line
+        if use_color and force_stdout:
+            print(colored)
+        else:
+            logger.info(colored)
 
 
 def format_error(message: str, *, use_color: bool = True) -> str:

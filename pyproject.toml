@@ -2,9 +2,7 @@
 name = "myproject"
 dynamic = ["version"]
 description = "A modern Python project template with optional CLI support."
-authors = [
-  { name = "Your Name", email = "your@email.com" }
-]
+authors = [{ name = "Your Name", email = "your@email.com" }]
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.9"
@@ -31,7 +29,7 @@ dev = [
 ]
 
 [project.scripts]
-myproject = "myproject.cli:main"
+myproject = "myproject.__main__:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -74,9 +72,10 @@ ignore = [
   "TD",      # allow TODO comments
   "FIX002",  # allow FIXME comments
   "TC003",   # allow runtime use of typing-only imports like `Path`
-  "COM812"   # Avoid conflict with Ruff formatter
+  "COM812"   # avoid conflict with Ruff formatter
 ]
-per-file-ignores = { "tests/conftest.py" = ["S603"], "tests/*" = ["S101"] }
+# Per-file ignores: grouped by type
+per-file-ignores = {"tests/conftest.py" = ["S603"], "tests/*" = ["S101"], "src/myproject/cli/utils_color.py" = ["T201"]}
 
 # ----------------------------
 # Pytest Configuration

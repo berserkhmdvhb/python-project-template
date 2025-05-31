@@ -95,7 +95,7 @@ def test_cli_invalid_flag(run_cli: Callable[..., tuple[str, str, int]]) -> None:
 
 
 def test_cli_keyboard_interrupt(monkeypatch: MonkeyPatch) -> None:
-    import myproject.cli
+    import myproject.cli.cli_main
 
     def raise_interrupt(*_: object, **__: object) -> str:
         raise KeyboardInterrupt
@@ -104,13 +104,13 @@ def test_cli_keyboard_interrupt(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["myproject", "--query", "example"])
 
     with pytest.raises(SystemExit) as excinfo:
-        myproject.cli.main()
+        myproject.cli.cli_main.main()
 
     assert excinfo.value.code == const.EXIT_CANCELLED
 
 
 def test_cli_internal_error(monkeypatch: MonkeyPatch) -> None:
-    import myproject.cli
+    import myproject.cli.cli_main
 
     def raise_unexpected(*_: object, **__: object) -> str:
         error_msg = "Simulated crash"
@@ -120,7 +120,7 @@ def test_cli_internal_error(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["myproject", "--query", "test"])
 
     with pytest.raises(SystemExit) as excinfo:
-        myproject.cli.main()
+        myproject.cli.cli_main.main()
 
     assert excinfo.value.code == const.EXIT_INVALID_USAGE
 
@@ -180,3 +180,29 @@ def test_cli_debug_env_load_with_verbose(
     assert "loaded environment variables" in combined
     assert code == const.EXIT_SUCCESS
 
+
+def test_cli_color_output_with_always_flag(run_cli: Callable[..., tuple[str, str, int]]) -> None:
+    """
+    Integration test: ensure CLI output contains ANSI color codes
+    when --color=always is passed explicitly.
+    """
+    out, err, code = run_cli(
+        "--query",
+        "hello",
+        "--color",
+        "always",
+        "--verbose",
+        env={"MYPROJECT_ENV": "DEV"},
+    )
+    """
+    print("\n[DEBUG] STDOUT:")
+    print(repr(out))
+    print("\n[DEBUG] STDERR:")
+    print(repr(err))
+    """
+
+    assert code == const.EXIT_SUCCESS
+
+    # ANSI escape sequences start with \x1b[
+    has_ansi = any("\x1b[" in line for line in out.splitlines())
+    assert has_ansi, "Expected ANSI color codes in output but none found"
