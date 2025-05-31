@@ -3,14 +3,10 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 
-if TYPE_CHECKING:
-    import myproject.constants as const
-else:
-    import myproject.constants as const
+import myproject.constants as const
 
 # ---------------------------------------------------------------------
 # Constants

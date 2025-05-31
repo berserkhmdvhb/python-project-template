@@ -60,7 +60,6 @@ class LoggingArgumentParser(argparse.ArgumentParser):
         self.exit(const.EXIT_INVALID_USAGE)
 
 
-
 def setup_cli_logger(*, quiet: bool, sett: ModuleType) -> None:
     log_level = logging.CRITICAL if quiet else None
     setup_logging(log_dir=sett.get_log_dir(), log_level=log_level, reset=True)
