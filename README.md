@@ -124,7 +124,7 @@ This template is structured around **clarity**, **testability**, and **flexible 
 
 ## 🚀 Quickstart
 
-### 📅 Installation (Editable Mode)
+### 📥 Installation (Editable Mode)
 
 ```bash
 python -m venv .venv
