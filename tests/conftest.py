@@ -50,12 +50,16 @@ def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
         "MYPROJECT_LOG_MAX_BYTES",
         "MYPROJECT_LOG_BACKUP_COUNT",
         "MYPROJECT_LOG_LEVEL",
+        "MYPROJECT_DEBUG_ENV_LOAD",
     ]
     if not os.environ.get("_MYPROJECT_KEEP_DOTENV_PATH"):
         vars_to_clear.append("DOTENV_PATH")
 
     for var in vars_to_clear:
         monkeypatch.delenv(var, raising=False)
+
+    # Force default value to avoid shell override
+    monkeypatch.setenv("MYPROJECT_DEBUG_ENV_LOAD", "0")
 
 
 # ---------------------------------------------------------------------
@@ -166,13 +170,21 @@ def log_stream() -> Generator[StringIO, None, None]:
 def run_cli(tmp_path: Path) -> Callable[..., tuple[str, str, int]]:
     def _run(*args: str, env: dict[str, str] | None = None) -> tuple[str, str, int]:
         cmd = [sys.executable, "-m", "myproject", *args]
-        if "--color=never" not in cmd:
+
+        # Enforce no color unless explicitly overridden
+        if not any(arg.startswith("--color") or arg == "--color" for arg in args):
             cmd.append("--color=never")
+
+        # Enforce non-verbose mode unless explicitly overridden
+        if "--verbose" not in cmd:
+            # CLI defaults to quiet mode, so we simulate non-verbose explicitly
+            pass  # No flag needed since --verbose is opt-in
 
         full_env = {
             **os.environ,
             "MYPROJECT_LOG_MAX_BYTES": "10000",
             "MYPROJECT_LOG_BACKUP_COUNT": "2",
+            "MYPROJECT_DEBUG_ENV_LOAD": "0",
             **(env or {}),
         }
 

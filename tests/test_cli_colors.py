@@ -133,3 +133,19 @@ def test_print_lines_with_color(
     assert COLOR_HEADER in out
     assert COLOR_CODELINE in out
     assert "other" in out
+"""
+def test_cli_color_always(run_cli: Callable[..., tuple[str, str, int]]) -> None:
+    out, err, code = run_cli(
+        "--query",
+        "hello",
+        "--color",
+        "always",
+        "--verbose",
+        env={"MYPROJECT_ENV": "DEV"},
+    )
+    assert code == const.EXIT_SUCCESS
+
+    # ANSI escape codes begin with \x1b[
+    has_ansi = any("\x1b[" in line for line in out.splitlines())
+    assert has_ansi, "Expected ANSI color codes in output but none found"
+"""
