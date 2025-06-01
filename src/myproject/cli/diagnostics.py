@@ -22,13 +22,13 @@ Functions:
 import os
 import sys
 from argparse import Namespace
-from types import ModuleType
 
 from myproject.cli.utils_color import format_debug, format_settings
+from myproject.types import SettingsLike
 
 
 def print_dotenv_debug(
-    sett: ModuleType,
+    sett: SettingsLike,
     *,
     debug: bool,
     use_color: bool,
@@ -43,7 +43,7 @@ def print_dotenv_debug(
 
 def print_debug_diagnostics(
     args: Namespace,
-    sett: ModuleType,
+    sett: SettingsLike,
     *,
     use_color: bool,
 ) -> None:

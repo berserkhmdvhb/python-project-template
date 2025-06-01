@@ -26,7 +26,22 @@ def _is_test_mode() -> bool:
     return "PYTEST_CURRENT_TEST" in os.environ
 
 
-def _safe_int(env_var: str, default: int) -> int:
+# ---------------------------------------------------------------------
+# Public Utilities
+# ---------------------------------------------------------------------
+
+
+def safe_int(env_var: str, default: int) -> int:
+    """
+    Safely retrieve an integer from an environment variable, falling back to a default.
+
+    Args:
+        env_var: Name of the environment variable.
+        default: Default value to use if missing or invalid.
+
+    Returns:
+        Integer from the environment or default.
+    """
     val: str | None = os.getenv(env_var)
     if val is not None:
         try:
@@ -129,11 +144,11 @@ def get_log_dir() -> Path:
 
 
 def get_log_max_bytes() -> int:
-    return _safe_int("MYPROJECT_LOG_MAX_BYTES", 1_000_000)
+    return safe_int("MYPROJECT_LOG_MAX_BYTES", 1_000_000)
 
 
 def get_log_backup_count() -> int:
-    return _safe_int("MYPROJECT_LOG_BACKUP_COUNT", 5)
+    return safe_int("MYPROJECT_LOG_BACKUP_COUNT", 5)
 
 
 def get_default_log_level() -> str:

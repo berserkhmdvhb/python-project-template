@@ -96,7 +96,7 @@ def temp_log_dir(monkeypatch: MonkeyPatch) -> Generator[Path, None, None]:
         tmp_path = Path(tmpdir).resolve()
         monkeypatch.setenv("MYPROJECT_ENV", "TEST")
 
-        import myproject.cli_logger_utils as clu
+        import myproject.cli.utils_logger as clu
         import myproject.settings as sett
 
         importlib.reload(sett)
@@ -118,7 +118,7 @@ def patched_settings(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "50")
     monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "1")
 
-    import myproject.cli_logger_utils as clu
+    import myproject.cli.utils_logger as clu
     import myproject.settings as sett
 
     importlib.reload(sett)

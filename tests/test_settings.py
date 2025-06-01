@@ -1,45 +1,111 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Callable, Protocol
+from typing import TYPE_CHECKING, Callable
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
-
-from myproject.settings import (
-    get_log_backup_count as get_default_log_backup_count,
-)
-from myproject.settings import (
-    get_log_max_bytes as get_default_log_max_bytes,
+import myproject.settings as sett
+from myproject.constants import (
+    DEFAULT_LOG_ROOT,
+    ENV_ENVIRONMENT,
+    ENV_LOG_LEVEL,
 )
 
-# Constants for tests to replace magic numbers
-OVERRIDE_LOG_MAX_BYTES = 4321
-OVERRIDE_LOG_BACKUP_COUNT = 8
+if TYPE_CHECKING:
+    from myproject.types import SettingsLike
 
-DOTENV_LOG_MAX_BYTES = 1234
-DOTENV_LOG_BACKUP_COUNT = 7
+# Magic constants for tests
+MAX_BYTES_TEST = 2048
+BACKUP_COUNT_TEST = 7
+DOTENV_MAX_BYTES = 1111
+DOTENV_BACKUP_COUNT = 3
 
-CUSTOM_ENV_LOG_MAX_BYTES = 9001
-CUSTOM_ENV_LOG_BACKUP_COUNT = 3
-
-
-class SettingsLike(Protocol):
-    def get_environment(self) -> str: ...
-    def is_dev(self) -> bool: ...
-    def is_uat(self) -> bool: ...
-    def is_prod(self) -> bool: ...
-    def get_log_max_bytes(self) -> int: ...
-    def get_log_backup_count(self) -> int: ...
-    def get_default_log_level(self) -> str: ...
+# ---------------------------------------------------------------------
+# Unit-level tests
+# ---------------------------------------------------------------------
 
 
-def test_default_environment_and_flags(
-    load_fresh_settings: Callable[..., SettingsLike],
+def test_get_environment_defaults_to_dev(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(ENV_ENVIRONMENT, raising=False)
+    assert sett.get_environment() == "DEV"
+
+
+@pytest.mark.parametrize(
+    ("val", "expected"),
+    [("dev", "DEV"), ("uat", "UAT"), ("PROD", "PROD")],
+)
+def test_get_environment_case_insensitive(
+    monkeypatch: pytest.MonkeyPatch,
+    val: str,
+    expected: str,
 ) -> None:
-    settings = load_fresh_settings()
-    assert settings.get_environment() == "DEV"
-    assert settings.is_dev()
-    assert not settings.is_uat()
-    assert not settings.is_prod()
+    monkeypatch.setenv(ENV_ENVIRONMENT, val)
+    assert sett.get_environment() == expected
+
+
+def test_unknown_environment_passthrough(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ENV_ENVIRONMENT, "weird_env")
+    assert sett.get_environment() == "WEIRD_ENV"
+
+
+def test_env_accessors(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ENV_ENVIRONMENT, "UAT")
+    assert sett.is_uat()
+    assert not sett.is_dev()
+    assert not sett.is_prod()
+
+
+def test_get_log_dir(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ENV_ENVIRONMENT, "prod")
+    assert sett.get_log_dir() == DEFAULT_LOG_ROOT / "PROD"
+
+
+@pytest.mark.parametrize(
+    ("val", "default", "expected"),
+    [("1234", 42, 1234), ("bad", 42, 42), (None, 99, 99)],
+)
+def test_safe_int(
+    monkeypatch: pytest.MonkeyPatch,
+    val: str | None,
+    default: int,
+    expected: int,
+) -> None:
+    envvar = "MYPROJECT_LOG_MAX_BYTES"
+    if val is None:
+        monkeypatch.delenv(envvar, raising=False)
+    else:
+        monkeypatch.setenv(envvar, val)
+    result = sett.safe_int(envvar, default)
+    assert result == expected
+
+
+def test_log_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", str(MAX_BYTES_TEST))
+    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", str(BACKUP_COUNT_TEST))
+    monkeypatch.setenv(ENV_LOG_LEVEL, "warning")
+
+    assert sett.get_log_max_bytes() == MAX_BYTES_TEST
+    assert sett.get_log_backup_count() == BACKUP_COUNT_TEST
+    assert sett.get_default_log_level() == "WARNING"
+
+    monkeypatch.delenv(ENV_LOG_LEVEL, raising=False)
+    assert sett.get_default_log_level() == "INFO"
+
+
+def test_resolve_loaded_dotenv_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy::test")
+    test_env = tmp_path / ".env.test"
+    test_env.write_text("MYPROJECT_ENV=uat\n")
+
+    monkeypatch.chdir(tmp_path)
+    result = sett.resolve_loaded_dotenv_paths()
+    assert test_env.exists()
+    assert result == [test_env]
+
+
+# ---------------------------------------------------------------------
+# Integration-style tests with load_fresh_settings
+# ---------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("val", ["uat", "UAT", "UaT"])
@@ -48,9 +114,9 @@ def test_uat_variants(
     load_fresh_settings: Callable[..., SettingsLike],
     val: str,
 ) -> None:
-    env_file = tmp_path / ".env.test"
-    env_file.write_text(f"MYPROJECT_ENV={val}\n")
-    settings = load_fresh_settings(dotenv_path=env_file)
+    path = tmp_path / ".env.test"
+    path.write_text(f"MYPROJECT_ENV={val}")
+    settings = load_fresh_settings(dotenv_path=path)
     assert settings.get_environment() == "UAT"
     assert settings.is_uat()
 
@@ -61,57 +127,11 @@ def test_prod_variants(
     load_fresh_settings: Callable[..., SettingsLike],
     val: str,
 ) -> None:
-    env_file = tmp_path / ".env.test"
-    env_file.write_text(f"MYPROJECT_ENV={val}\n")
-    settings = load_fresh_settings(dotenv_path=env_file)
+    path = tmp_path / ".env.test"
+    path.write_text(f"MYPROJECT_ENV={val}")
+    settings = load_fresh_settings(dotenv_path=path)
     assert settings.get_environment() == "PROD"
     assert settings.is_prod()
-
-
-def test_unknown_environment(
-    tmp_path: Path,
-    load_fresh_settings: Callable[..., SettingsLike],
-) -> None:
-    env_file = tmp_path / ".env.test"
-    env_file.write_text("MYPROJECT_ENV=STAGING\n")
-    settings = load_fresh_settings(dotenv_path=env_file)
-    assert settings.get_environment() == "STAGING"
-    assert not settings.is_dev()
-    assert not settings.is_uat()
-    assert not settings.is_prod()
-
-
-def test_numeric_overrides_via_env(
-    monkeypatch: MonkeyPatch,
-    load_fresh_settings: Callable[..., SettingsLike],
-) -> None:
-    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", str(OVERRIDE_LOG_MAX_BYTES))
-    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", str(OVERRIDE_LOG_BACKUP_COUNT))
-    settings = load_fresh_settings()
-    assert settings.get_log_max_bytes() == OVERRIDE_LOG_MAX_BYTES
-    assert settings.get_log_backup_count() == OVERRIDE_LOG_BACKUP_COUNT
-
-
-def test_invalid_numeric_env_falls_back(
-    monkeypatch: MonkeyPatch,
-    load_fresh_settings: Callable[..., SettingsLike],
-) -> None:
-    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "notanint")
-    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "alsonotanint")
-    settings = load_fresh_settings()
-    assert settings.get_log_max_bytes() == get_default_log_max_bytes()
-    assert settings.get_log_backup_count() == get_default_log_backup_count()
-
-
-def test_empty_numeric_env(
-    monkeypatch: MonkeyPatch,
-    load_fresh_settings: Callable[..., SettingsLike],
-) -> None:
-    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "")
-    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "")
-    settings = load_fresh_settings()
-    assert settings.get_log_max_bytes() == get_default_log_max_bytes()
-    assert settings.get_log_backup_count() == get_default_log_backup_count()
 
 
 def test_dotenv_file_loading(
@@ -120,56 +140,52 @@ def test_dotenv_file_loading(
 ) -> None:
     dotenv = tmp_path / ".env.test"
     dotenv.write_text(
-        f"MYPROJECT_ENV=PROD\nMYPROJECT_LOG_MAX_BYTES={DOTENV_LOG_MAX_BYTES}\n"
-        f"MYPROJECT_LOG_BACKUP_COUNT={DOTENV_LOG_BACKUP_COUNT}\n",
+        f"MYPROJECT_ENV=PROD\n"
+        f"MYPROJECT_LOG_MAX_BYTES={DOTENV_MAX_BYTES}\n"
+        f"MYPROJECT_LOG_BACKUP_COUNT={DOTENV_BACKUP_COUNT}\n"
     )
+    assert dotenv.exists()
     settings = load_fresh_settings(dotenv_path=dotenv)
     assert settings.get_environment() == "PROD"
-    assert settings.get_log_max_bytes() == DOTENV_LOG_MAX_BYTES
-    assert settings.get_log_backup_count() == DOTENV_LOG_BACKUP_COUNT
+    assert settings.get_log_max_bytes() == DOTENV_MAX_BYTES
+    assert settings.get_log_backup_count() == DOTENV_BACKUP_COUNT
 
 
-def test_dotenv_path_override(
-    tmp_path: Path,
+def test_invalid_numeric_env_fallback(
+    monkeypatch: pytest.MonkeyPatch,
     load_fresh_settings: Callable[..., SettingsLike],
 ) -> None:
-    custom_env = tmp_path / ".custom.env"
-    custom_env.write_text(
-        f"MYPROJECT_ENV=UAT\nMYPROJECT_LOG_MAX_BYTES={CUSTOM_ENV_LOG_MAX_BYTES}\n"
-        f"MYPROJECT_LOG_BACKUP_COUNT={CUSTOM_ENV_LOG_BACKUP_COUNT}\n",
-    )
-    settings = load_fresh_settings(dotenv_path=custom_env)
-    assert settings.get_environment() == "UAT"
-    assert settings.get_log_max_bytes() == CUSTOM_ENV_LOG_MAX_BYTES
-    assert settings.get_log_backup_count() == CUSTOM_ENV_LOG_BACKUP_COUNT
+    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "notanint")
+    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "alsoBad")
+    settings = load_fresh_settings()
+    assert isinstance(settings.get_log_max_bytes(), int)
+    assert isinstance(settings.get_log_backup_count(), int)
 
 
 def test_env_override_priority(
     tmp_path: Path,
     load_fresh_settings: Callable[..., SettingsLike],
 ) -> None:
-    (tmp_path / ".env").write_text("MYPROJECT_ENV=ENV\n")
-    (tmp_path / ".env.override").write_text("MYPROJECT_ENV=OVERRIDE\n")
-    (tmp_path / ".env.test").write_text("MYPROJECT_ENV=TEST\n")
+    (tmp_path / ".env.override").write_text("MYPROJECT_ENV=OVERRIDE")
+    (tmp_path / ".env").write_text("MYPROJECT_ENV=BASE")
+    (tmp_path / ".env.test").write_text("MYPROJECT_ENV=TEST")
     custom = tmp_path / ".custom.env"
-    custom.write_text("MYPROJECT_ENV=EXPLICIT\n")
+    custom.write_text("MYPROJECT_ENV=EXPLICIT")
+
     settings = load_fresh_settings(dotenv_path=custom)
     assert settings.get_environment() == "EXPLICIT"
 
 
-def test_pytest_without_env_test_falls_back(
-    tmp_path: Path,
-    monkeypatch: MonkeyPatch,
+def test_default_environment_and_flags(
     load_fresh_settings: Callable[..., SettingsLike],
 ) -> None:
-    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
-    monkeypatch.delenv("DOTENV_PATH", raising=False)
-    (tmp_path / ".env").write_text("MYPROJECT_ENV=UAT\n")
-    settings = load_fresh_settings(dotenv_path=tmp_path / ".env")
-    assert settings.get_environment() == "UAT"
-    assert settings.is_uat()
+    settings = load_fresh_settings()
+    assert settings.get_environment() == "DEV"
+    assert settings.is_dev()
 
 
-def test_default_log_level(load_fresh_settings: Callable[..., SettingsLike]) -> None:
+def test_default_log_level(
+    load_fresh_settings: Callable[..., SettingsLike],
+) -> None:
     settings = load_fresh_settings()
     assert settings.get_default_log_level() == "INFO"

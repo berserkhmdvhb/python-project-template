@@ -75,7 +75,7 @@ ignore = [
   "COM812"   # avoid conflict with Ruff formatter
 ]
 # Per-file ignores: grouped by type
-per-file-ignores = {"tests/conftest.py" = ["S603"], "tests/*" = ["S101"], "src/myproject/cli/utils_color.py" = ["T201"]}
+per-file-ignores = {"tests/*" = ["S101", "S603"], "src/myproject/cli/utils_color.py" = ["T201"]}
 
 # ----------------------------
 # Pytest Configuration

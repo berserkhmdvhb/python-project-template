@@ -34,6 +34,7 @@ def test_setup_logging_creates_handlers(tmp_path: Path) -> None:
 
 def test_handlers_write_to_correct_log_dir(tmp_path: Path) -> None:
     handlers = setup_logging(log_dir=tmp_path, reset=True, return_handlers=True)
+    assert handlers is not None
     file_handler = next(h for h in handlers if isinstance(h, RotatingFileHandler))
     assert tmp_path.resolve() in Path(file_handler.baseFilename).resolve().parents
 
