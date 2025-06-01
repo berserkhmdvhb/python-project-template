@@ -16,9 +16,10 @@ _WARNING_DOTENV_NOT_FOUND = "Warning: dotenv path not found: %s"
 
 
 def nonempty_str(value: str) -> str:
-    if not value or not value.strip():
+    stripped = value.strip()
+    if not stripped:
         raise argparse.ArgumentTypeError(_ERR_MSG_EMPTY_QUERY)
-    return value.strip()
+    return stripped
 
 
 class LoggingArgumentParser(argparse.ArgumentParser):
@@ -33,16 +34,19 @@ def apply_early_env(argv: list[str] | None) -> argparse.ArgumentParser:
     early_parser = argparse.ArgumentParser(add_help=False)
     early_parser.add_argument("--dotenv-path", type=str)
     early_parser.add_argument("--env", type=str)
+
     early_args, _ = early_parser.parse_known_args(argv)
 
-    if early_args.dotenv_path:
-        dotenv_path = Path(early_args.dotenv_path).expanduser().resolve()
+    dotenv_raw = early_args.dotenv_path
+    if dotenv_raw:
+        dotenv_path = Path(dotenv_raw).expanduser().resolve()
         if dotenv_path.exists():
             os.environ["DOTENV_PATH"] = str(dotenv_path)
         else:
             sys.stderr.write(_WARNING_DOTENV_NOT_FOUND % dotenv_path + "\n")
 
-    if early_args.env:
-        os.environ["MYPROJECT_ENV"] = early_args.env.upper()
+    env_raw = early_args.env
+    if env_raw:
+        os.environ["MYPROJECT_ENV"] = env_raw.upper()
 
     return early_parser

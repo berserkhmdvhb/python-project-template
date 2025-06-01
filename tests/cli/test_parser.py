@@ -3,10 +3,11 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from importlib.metadata import PackageNotFoundError
 
 import pytest
 
-from myproject.cli.parser import create_parser
+from myproject.cli.parser import create_parser, get_version
 
 
 def test_create_parser_has_expected_arguments() -> None:
@@ -61,3 +62,11 @@ def test_version_flag() -> None:
         check=True,
     )
     assert result.stdout.strip()
+
+
+def test_get_version_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "myproject.cli.parser.version",
+        lambda _: (_ for _ in ()).throw(PackageNotFoundError()),
+    )
+    assert get_version() == "unknown (not installed)"

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 import pytest
+
 import myproject.settings as sett
 from myproject.constants import (
     DEFAULT_LOG_ROOT,
