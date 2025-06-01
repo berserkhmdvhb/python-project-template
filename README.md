@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)
 [![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
 [![Coverage Status](https://img.shields.io/coveralls/github/berserkhmdvhb/python-project-template?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
-[![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
+
 
 A **modern, minimal, and reusable Python project template** for building libraries, CLIs, or hybrid packages — designed with best practices, rich tooling, and robust environment-based behavior.
 
