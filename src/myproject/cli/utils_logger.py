@@ -7,14 +7,23 @@ from pathlib import Path
 
 import myproject.constants as const
 
-# Central logger name constant
+# Centralized logger name for the project
 LOGGER_NAME = "myproject"
+
+__all__ = [
+    "LOGGER_NAME",
+    "EnvironmentFilter",
+    "get_default_formatter",
+    "setup_logging",
+    "teardown_logger",
+]
 
 
 class EnvironmentFilter(logging.Filter):
     """Injects the current environment (e.g., DEV, UAT, PROD) into log records."""
 
     def filter(self, record: logging.LogRecord) -> bool:
+        # Delayed import to avoid circular dependencies
         import myproject.settings as sett
 
         record.env = sett.get_environment()
@@ -23,12 +32,12 @@ class EnvironmentFilter(logging.Filter):
 
 def ensure_filter(handler: logging.Handler, filt: logging.Filter) -> None:
     """Ensure the filter is applied only once to a handler."""
-    if not any(isinstance(f, type(filt)) for f in handler.filters):
+    if not any(isinstance(existing, type(filt)) for existing in handler.filters):
         handler.addFilter(filt)
 
 
 def get_default_formatter() -> logging.Formatter:
-    """Returns a formatter that matches CLI-style output."""
+    """Returns the default CLI-style formatter for log messages."""
     return logging.Formatter(const.LOG_FORMAT)
 
 
@@ -40,23 +49,24 @@ def setup_logging(
     return_handlers: bool = False,
 ) -> list[logging.Handler] | None:
     """
-    Configure logging for both console and file output.
+    Set up logging to both console and file.
 
     Args:
-        log_dir: Optional override for log directory (useful in tests).
-        log_level: Console log level override (e.g., logging.DEBUG).
-        reset: If True, removes existing handlers before setting up.
-        return_handlers: If True, returns the list of created handlers.
+        log_dir: Optional directory to store the log file.
+        log_level: Optional log level for console output.
+        reset: If True, clears existing handlers before reconfiguring.
+        return_handlers: If True, returns the list of attached handlers.
 
     Returns:
-        A list of handlers if `return_handlers` is True; otherwise None.
+        List of handlers if `return_handlers` is True; otherwise None.
     """
+    # Delayed import to prevent circular issues
     import myproject.settings as sett
 
     logger = logging.getLogger(LOGGER_NAME)
 
     if logger.hasHandlers() and not reset:
-        return None  # Skip duplicate setup
+        return None  # Already configured
 
     if reset:
         for handler in logger.handlers[:]:
@@ -78,7 +88,7 @@ def setup_logging(
     stream_handler.setFormatter(formatter)
     ensure_filter(stream_handler, env_filter)
     stream_handler.setLevel(
-        log_level if log_level is not None else (logging.DEBUG if sett.is_dev() else logging.INFO),
+        log_level if log_level is not None else (logging.DEBUG if sett.is_dev() else logging.INFO)
     )
     logger.addHandler(stream_handler)
 
@@ -104,10 +114,10 @@ def setup_logging(
 
 def teardown_logger(logger: logging.Logger | None = None) -> None:
     """
-    Remove all handlers cleanly from the logger to avoid log duplication or locking issues.
+    Cleanly detach all handlers from the logger.
 
     Args:
-        logger: Logger instance to clean up. Defaults to central LOGGER_NAME if None.
+        logger: Target logger to tear down. Defaults to project logger.
     """
     logger = logger or logging.getLogger(LOGGER_NAME)
     for handler in logger.handlers[:]:
@@ -116,11 +126,3 @@ def teardown_logger(logger: logging.Logger | None = None) -> None:
         with contextlib.suppress(Exception):
             handler.close()
         logger.removeHandler(handler)
-
-
-__all__: list[str] = [
-    "EnvironmentFilter",
-    "get_default_formatter",
-    "setup_logging",
-    "teardown_logger",
-]

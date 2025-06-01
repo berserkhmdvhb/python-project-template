@@ -8,12 +8,12 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from myproject.constants import LOG_FILE_NAME
-from myproject.utils_logger import (
+from myproject.cli.utils_logger import (
     EnvironmentFilter,
     setup_logging,
     teardown_logger,
 )
+from myproject.constants import LOG_FILE_NAME
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
@@ -98,7 +98,7 @@ def test_rotating_log_rollover(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
     import myproject.settings as settings_module
 
     importlib.reload(settings_module)
-    importlib.reload(importlib.import_module("myproject.utils_logger"))
+    importlib.reload(importlib.import_module("myproject.cli.utils_logger"))
 
     setup_logging(log_dir=tmp_path, reset=True)
     logger = get_logger()

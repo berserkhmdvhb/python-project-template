@@ -68,13 +68,14 @@ def print_lines(lines: list[str], *, use_color: bool, force_stdout: bool = False
     """
     Print or log a list of lines with optional color formatting.
 
-    - If `use_color` is True and `force_stdout` is True, print directly to stdout (with color).
+    - If `force_stdout` is True, print directly to stdout
+    (with our without color, depending on `use_color`).
     - Otherwise, log to logger.info (with or without color).
     """
     for line in lines:
         colored = colorize_line(line) if use_color else line
-        if use_color and force_stdout:
-            print(colored)
+        if force_stdout:
+            print(colored, flush=True)
         else:
             logger.info(colored)
 
