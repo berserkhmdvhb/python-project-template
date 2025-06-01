@@ -18,12 +18,12 @@ help:
 	@echo "  format                 Auto-format using Ruff"
 	@echo "  format-check           Check formatting (dry run)"
 	@echo "  test                   Run all tests using Pytest"
-	@echo "  test-file              Run a single test file or keyword with TEST=..."
+	@echo "  test-file              Run a single test file or keyword with FILE=... (e.g. make test-file FILE=tests/test_cli.py)"
 	@echo "  test-fast              Run only last failed tests"
 	@echo "  test-coverage          Run tests and show terminal coverage summary"
 	@echo "  test-coverage-xml      Run tests and generate XML coverage report"
 	@echo "  show-coverage          Show full line-by-line coverage report"
-	@echo "  show-coverage-file     Show coverage for a specific file: make show-coverage-file FILE=..."
+	@echo "  show-coverage-file     Show coverage for a specific file: FILE=... (e.g. make show-coverage-file FILE=src/myproject/cli/main.py)"
 	@echo "  clean-coverage         Erase cached coverage data"
 	@echo "  test-cov-html          Run tests with HTML coverage report and open it"
 	@echo "  test-watch             Auto-rerun tests on file changes"
@@ -73,7 +73,7 @@ test:
 	pytest tests/ -v
 
 test-file:
-	pytest $(TEST) -v
+	pytest $(FILE) -v
 
 test-fast:
 	pytest --lf -x -v
