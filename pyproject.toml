@@ -3,13 +3,24 @@ name = "myproject"
 dynamic = ["version"]
 description = "A modern Python project template with optional CLI support."
 authors = [{ name = "Your Name", email = "your@email.com" }]
+keywords = ["cli", "template", "python", "packaging"]
 readme = "README.md"
 license = { file = "LICENSE.txt" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
   "colorama>=0.4.0",
   "python-dotenv>=1.0.0"
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
 ]
 
 [project.optional-dependencies]
@@ -22,8 +33,10 @@ dev = [
   "pre-commit",
   "pytest",
   "pytest-cov",
+  "pytest-watch",
   "python-dotenv",
   "ruff",
+  "safety",
   "twine",
   "types-colorama"
 ]
@@ -40,6 +53,7 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["myproject*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "myproject.__version__" }
@@ -74,7 +88,6 @@ ignore = [
   "TC003",   # allow runtime use of typing-only imports like `Path`
   "COM812"   # avoid conflict with Ruff formatter
 ]
-# Per-file ignores: grouped by type
 per-file-ignores = {"tests/*" = ["S101", "S603"], "src/myproject/cli/utils_color.py" = ["T201"]}
 
 # ----------------------------

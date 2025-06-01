@@ -18,6 +18,12 @@ jobs:
       - name: ✅ Checkout repository
         uses: actions/checkout@v4
 
+      - name: 🧭 Show runner context
+        run: |
+          echo "OS: $(uname -a)"
+          echo "Python: $(python --version)"
+          echo "Shell: $SHELL"
+
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -39,14 +45,14 @@ jobs:
       - name: 🚀 Test CLI entry point
         run: python -m myproject --version
 
-      - name: 🎨 Format check
+      - name: 🎨 Format check (dry run)
         run: make format
 
       - name: 🔎 Lint check
         run: make lint
 
       - name: 🧪 Run tests with coverage
-        run: make coverage-xml
+        run: make test-coverage-xml
 
       - name: ✅ Assert coverage.xml exists
         run: test -f coverage.xml
@@ -61,3 +67,4 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
