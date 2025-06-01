@@ -61,8 +61,8 @@ def main(argv: list[str] | None = None) -> None:
             logger.info("Processing query...")
 
         if not args.query:
-            parser.print_help()
-            sys.exit(const.EXIT_SUCCESS)
+            sys.stderr.write(format_error("Error: --query is required.\n", use_color=use_color))
+            sys.exit(const.EXIT_INVALID_USAGE)
 
         processed = handlers.process_query_or_simulate(args, sett)
         handlers.handle_result(processed, args, sett, use_color=use_color)
@@ -92,5 +92,5 @@ def main(argv: list[str] | None = None) -> None:
         teardown_logger(logger)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

@@ -3,8 +3,6 @@ from __future__ import annotations
 import importlib
 import logging
 import os
-import subprocess
-import sys
 import tempfile
 from collections.abc import Generator
 from io import StringIO
@@ -15,6 +13,7 @@ from typing import TYPE_CHECKING, Callable, Final
 import pytest
 
 from myproject.cli.utils_logger import teardown_logger
+from tests.utils import invoke_cli
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
@@ -24,6 +23,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------
 
 LOGGER_NAME: Final = "myproject"
+
 
 # ---------------------------------------------------------------------
 # Auto-clean logger before and after each test
@@ -58,7 +58,6 @@ def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
     for var in vars_to_clear:
         monkeypatch.delenv(var, raising=False)
 
-    # Force default value to avoid shell override
     monkeypatch.setenv("MYPROJECT_DEBUG_ENV_LOAD", "0")
 
 
@@ -162,53 +161,13 @@ def log_stream() -> Generator[StringIO, None, None]:
 
 
 # ---------------------------------------------------------------------
-# CLI subprocess runner
+# CLI subprocess runner (wraps invoke_cli)
 # ---------------------------------------------------------------------
 
 
 @pytest.fixture
 def run_cli(tmp_path: Path) -> Callable[..., tuple[str, str, int]]:
     def _run(*args: str, env: dict[str, str] | None = None) -> tuple[str, str, int]:
-        cmd = [sys.executable, "-m", "myproject", *args]
-
-        # Enforce no color unless explicitly overridden
-        if not any(arg.startswith("--color") or arg == "--color" for arg in args):
-            cmd.append("--color=never")
-
-        # Enforce non-verbose mode unless explicitly overridden
-        if "--verbose" not in cmd:
-            # CLI defaults to quiet mode, so we simulate non-verbose explicitly
-            pass  # No flag needed since --verbose is opt-in
-
-        full_env = {
-            **os.environ,
-            "MYPROJECT_LOG_MAX_BYTES": "10000",
-            "MYPROJECT_LOG_BACKUP_COUNT": "2",
-            "MYPROJECT_DEBUG_ENV_LOAD": "0",
-            **(env or {}),
-        }
-
-        if "PYTHONPATH" not in full_env:
-            full_env["PYTHONPATH"] = str(Path.cwd())
-
-        if "--dotenv-path" in args:
-            i = args.index("--dotenv-path")
-            if i + 1 < len(args):
-                full_env["DOTENV_PATH"] = str(Path(args[i + 1]).resolve())
-        else:
-            dummy_env = (tmp_path / ".env").resolve()
-            dummy_env.write_text("")
-            full_env["DOTENV_PATH"] = str(dummy_env)
-
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            env=full_env,
-            check=False,
-        )
-        return result.stdout.strip(), result.stderr.strip(), result.returncode
+        return invoke_cli(args, tmp_path=tmp_path, env=env)
 
     return _run

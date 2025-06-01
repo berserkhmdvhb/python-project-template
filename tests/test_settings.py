@@ -191,9 +191,11 @@ def test_default_log_level(
     settings = load_fresh_settings()
     assert settings.get_default_log_level() == "INFO"
 
+
 # ---------------------------------------------------------------------
 # Extra cases for full coverage
 # ---------------------------------------------------------------------
+
 
 def test_is_test_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy::test")

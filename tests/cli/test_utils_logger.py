@@ -14,6 +14,7 @@ from myproject.cli.utils_logger import (
     setup_logging,
     teardown_logger,
 )
+from tests.utils import SafeDummyHandler
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
@@ -123,3 +124,48 @@ def test_rotating_log_rollover(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
 
     assert primary_logs, f"Expected primary log file not found in {all_logs}"
     assert backups, f"No backup log file found in {all_logs}"
+
+
+def test_teardown_logger_removes_handlers() -> None:
+    logger = logging.getLogger("myproject")
+    dummy1 = SafeDummyHandler()
+    dummy2 = SafeDummyHandler()
+    logger.addHandler(dummy1)
+    logger.addHandler(dummy2)
+
+    assert dummy1 in logger.handlers
+    assert dummy2 in logger.handlers
+
+    teardown_logger(logger)
+
+    assert dummy1 not in logger.handlers
+    assert dummy2 not in logger.handlers
+    assert not logger.handlers
+
+
+def test_teardown_logger_covers_remove_handler(monkeypatch: MonkeyPatch) -> None:
+    """Ensure teardown_logger calls removeHandler and it is covered."""
+    logger = logging.getLogger(LOGGER_NAME)
+
+    # Add a dummy handler
+    handler = SafeDummyHandler()
+    logger.addHandler(handler)
+
+    # Patch flush and close to ensure they don't interfere
+    monkeypatch.setattr(handler, "flush", lambda: None)
+    monkeypatch.setattr(handler, "close", lambda: None)
+
+    # Track if removeHandler is called
+    called = {"removed": False}
+
+    def fake_remove_handler(h: logging.Handler) -> None:
+        if h is handler:
+            called["removed"] = True
+        original_remove_handler(h)
+
+    original_remove_handler = logger.removeHandler
+    monkeypatch.setattr(logger, "removeHandler", fake_remove_handler)
+
+    teardown_logger(logger)
+
+    assert called["removed"]
