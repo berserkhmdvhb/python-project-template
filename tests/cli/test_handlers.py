@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from argparse import Namespace
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
 
@@ -36,6 +37,23 @@ def test_handle_result_json_output(capsys: CaptureFixture[str]) -> None:
     assert data["environment"] == "UAT"
     assert data["input"] == "demo"
     assert data["output"] == "Processed: demo"
+
+
+def test_handle_result_logs_if_not_verbose() -> None:
+    args = Namespace(query="silent", format="text", verbose=False, debug=False, color="never")
+    sett = FakeSettingsModule("PROD")
+    with patch("myproject.cli.handlers.logging.getLogger") as mock_logger:
+        handle_result("Processed: silent", args, sett, use_color=False)
+        assert mock_logger.return_value.warning.called
+
+
+def test_handle_result_force_stdout_true(capsys: CaptureFixture[str]) -> None:
+    args = Namespace(query="test", format="text", verbose=True, debug=False, color="always")
+    sett = FakeSettingsModule("DEV")
+    handle_result("Processed: test", args, sett, use_color=True)
+    out, _ = capsys.readouterr()
+    assert "Processed: test" in out
+    assert "DEV environment" in out
 
 
 def test_process_query_or_simulate_dev(capsys: CaptureFixture[str]) -> None:

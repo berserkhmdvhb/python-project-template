@@ -190,3 +190,37 @@ def test_default_log_level(
 ) -> None:
     settings = load_fresh_settings()
     assert settings.get_default_log_level() == "INFO"
+
+# ---------------------------------------------------------------------
+# Extra cases for full coverage
+# ---------------------------------------------------------------------
+
+def test_is_test_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy::test")
+    assert sett.is_test_mode()
+
+
+def test_is_not_test_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    assert not sett.is_test_mode()
+
+
+def test_environment_empty_string(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ENV_ENVIRONMENT, "")
+    assert sett.get_environment() == "DEV"
+
+
+def test_env_sample_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    sample = tmp_path / ".env.sample"
+    sample.write_text("MYPROJECT_ENV=DEV\n")
+    monkeypatch.setattr(sett, "ROOT_DIR", tmp_path)
+
+    result = sett.resolve_loaded_dotenv_paths()
+    assert result == [sample]
+
+
+def test_no_dotenv_file(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sett, "_resolve_dotenv_paths", list)
+    result = sett.load_settings(verbose=True)
+    assert result == []

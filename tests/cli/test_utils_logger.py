@@ -8,12 +8,12 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import myproject.constants as const
 from myproject.cli.utils_logger import (
     EnvironmentFilter,
     setup_logging,
     teardown_logger,
 )
-from myproject.constants import LOG_FILE_NAME
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
@@ -36,7 +36,8 @@ def test_handlers_write_to_correct_log_dir(tmp_path: Path) -> None:
     handlers = setup_logging(log_dir=tmp_path, reset=True, return_handlers=True)
     assert handlers is not None
     file_handler = next(h for h in handlers if isinstance(h, RotatingFileHandler))
-    assert tmp_path.resolve() in Path(file_handler.baseFilename).resolve().parents
+    log_dir = Path(file_handler.baseFilename).resolve().parent
+    assert log_dir == tmp_path.resolve()
 
 
 def test_setup_logging_skips_if_not_reset(tmp_path: Path) -> None:
@@ -96,9 +97,9 @@ def test_rotating_log_rollover(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.delenv("DOTENV_PATH", raising=False)
     monkeypatch.chdir(tmp_path)
 
-    import myproject.settings as settings_module
+    import myproject.settings as sett
 
-    importlib.reload(settings_module)
+    importlib.reload(sett)
     importlib.reload(importlib.import_module("myproject.cli.utils_logger"))
 
     setup_logging(log_dir=tmp_path, reset=True)
@@ -114,12 +115,11 @@ def test_rotating_log_rollover(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
             handler.flush()
 
     logger.debug("trigger new file")
-
     time.sleep(0.1)
 
     all_logs = list(tmp_path.glob("*"))
-    primary_logs = [f for f in all_logs if f.name == LOG_FILE_NAME]
-    backups = [f for f in all_logs if f.name.startswith(LOG_FILE_NAME + ".")]
+    primary_logs = [f for f in all_logs if f.name == const.LOG_FILE_NAME]
+    backups = [f for f in all_logs if f.name.startswith(const.LOG_FILE_NAME + ".")]
 
     assert primary_logs, f"Expected primary log file not found in {all_logs}"
     assert backups, f"No backup log file found in {all_logs}"

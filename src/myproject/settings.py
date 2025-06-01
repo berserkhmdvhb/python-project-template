@@ -21,7 +21,7 @@ logger = logging.getLogger("myproject")
 # ---------------------------------------------------------------------
 
 
-def _is_test_mode() -> bool:
+def is_test_mode() -> bool:
     """Return True if running under pytest."""
     return "PYTEST_CURRENT_TEST" in os.environ
 
@@ -66,7 +66,7 @@ def _resolve_dotenv_paths() -> list[Path]:
     if custom := os.getenv("DOTENV_PATH"):
         return [Path(custom)]
 
-    if _is_test_mode():
+    if is_test_mode():
         test_env = Path.cwd() / ".env.test"
         return [test_env] if test_env.exists() else []
 
@@ -91,7 +91,7 @@ def load_settings(*, verbose: bool = False) -> list[Path]:
     Returns:
         List of loaded file paths.
     """
-    override = _is_test_mode()
+    override = is_test_mode()
     loaded: list[Path] = []
 
     for path in _resolve_dotenv_paths():
