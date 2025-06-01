@@ -47,11 +47,15 @@ def invoke_cli(
 # ---------------------------------------------------------------------
 
 
-class SafeDummyHandler(logging.StreamHandler[IO[str]]):
+
+class SafeDummyHandler(logging.StreamHandler):  # type: ignore[type-arg]
     """A dummy stream handler that suppresses flush/close errors in tests."""
 
+    def __init__(self, stream: IO[str] | None = None) -> None:
+        super().__init__(stream)
+
     def flush(self) -> None:
-        pass  # Suppress flush in test environments
+        pass
 
     def close(self) -> None:
-        pass  # Suppress close in test environments
+        pass
