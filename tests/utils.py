@@ -6,7 +6,7 @@ import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TextIO
+from typing import IO
 
 
 def invoke_cli(
@@ -47,9 +47,11 @@ def invoke_cli(
 # ---------------------------------------------------------------------
 
 
-class SafeDummyHandler(logging.StreamHandler[TextIO]):
+class SafeDummyHandler(logging.StreamHandler[IO[str]]):
+    """A dummy stream handler that suppresses flush/close errors in tests."""
+
     def flush(self) -> None:
-        pass  # Prevent actual flushing
+        pass  # Suppress flush in test environments
 
     def close(self) -> None:
-        pass  # Prevent actual closing
+        pass  # Suppress close in test environments
