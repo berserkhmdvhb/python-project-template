@@ -80,6 +80,7 @@ Get-Content .\logs\UAT\info.log -Tail 10
 
 ### Summary
 #### Powershell
+
 ```powershell
 make env-clear
 
@@ -99,7 +100,7 @@ myproject -q ".env file test" --debug
 Get-Content .\logs\UAT\info.log -Tail 10
 ```
 
-### Linux
+#### Linux
 
 ```bash
 make env-clear
@@ -168,21 +169,21 @@ Get-ChildItem .\logs\UAT\| Select-Object -ExpandProperty Name
 ```
 
 ![s3_4](https://github.com/user-attachments/assets/68fdc03f-02ef-40c4-b880-20e5d4639773)
+
 ### Summary
 #### Powershell
+
 ```powershell
-foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACKUP_COUNT", "DOTENV_PATH") {
-    if (Test-Path "Env:$var") { Remove-Item "Env:$var" }
-}
+make env-clear
 
 Remove-Item .env* -ErrorAction SilentlyContinue
 myproject -q "no env file test"
 ```
 
-### Linux
+#### Linux
 
 ```bash
-unset MYPROJECT_ENV MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
+make env-clear
 
 rm -f .env*
 myproject -q "no env file test"
@@ -196,11 +197,7 @@ myproject -q "no env file test"
 1. Rest environment variables
 
 ```powershell
-@"
-MYPROJECT_ENV=UAT
-MYPROJECT_LOG_MAX_BYTES=100
-MYPROJECT_LOG_BACKUP_COUNT=3
-"@ | Set-Content .env
+make env-clear
 ```
 
 2. Remove all existing .env files
@@ -250,6 +247,7 @@ Get-ChildItem .\logs\UAT\| Select-Object -ExpandProperty Name
 
 ### Summary
 #### Powershell
+
 ```powershell
 make env-clear
 
@@ -268,7 +266,7 @@ myproject -q ".env file test" --debug
 Get-ChildItem .\logs\UAT\| Select-Object -ExpandProperty Name
 ```
 
-### Linux
+#### Linux
 
 ```bash
 make env-clear
@@ -289,15 +287,11 @@ ls -1 logs/UAT/
 ```
 
 
-
-
-
-
 ---
 
 
 
-## Scenario 4: Custom .env via DOTENV_PATH
+## Scenario 4: Custom `custom.env` file via `DOTENV_PATH`
 
 1. Rest environment variables
 
@@ -305,7 +299,7 @@ ls -1 logs/UAT/
 make env-clear
 ```
 
-2. Add `.env` file:
+2. Add `.custom.env` file:
 
 ```powershell
 @"
@@ -336,7 +330,7 @@ myproject -q "foo" --dotenv-path .custom.env
 5. Run CLI (verbose) with explicit `DOTENV_PATH`
 
 ```powershell
-myproject -q ".env file test" --verbose
+myproject -q "foo" --dotenv-path .custom.env --verbose
 ```
 
 ![s4_2](https://github.com/user-attachments/assets/534f448c-ea79-493d-8cf2-fc005588eb89)
@@ -346,7 +340,7 @@ myproject -q ".env file test" --verbose
 6. Run CLI (debug) with explicit `DOTENV_PATH`
 
 ```powershell
-myproject -q ".env file test" --debug
+myproject -q "foo" --dotenv-path .custom.env --debug
 ```
 
 ![s4_3](https://github.com/user-attachments/assets/c5de6a6c-6a90-4a96-8404-37c0fc25a9db)
@@ -365,6 +359,7 @@ Get-ChildItem .\logs\PROD\| Select-Object -ExpandProperty Name
 
 ### Summary
 #### Powershell
+
 ```powershell
 make env-clear
 
@@ -379,8 +374,13 @@ Remove-Item .env.sample -ErrorAction SilentlyContinue
 Remove-Item .env.test -ErrorAction SilentlyContinue
 
 myproject -q "foo" --dotenv-path .custom.env
+myproject -q "foo" --dotenv-path .custom.env --verbose
+myproject -q "foo" --dotenv-path .custom.env --debug
+
+Get-ChildItem .\logs\PROD\| Select-Object -ExpandProperty Name
 ```
-### Linux
+
+#### Linux
 
 ```bash
 make env-clear
@@ -394,47 +394,101 @@ EOF
 rm -f .env .env.sample .env.test
 
 myproject -q "foo" --dotenv-path .custom.env
+myproject -q "foo" --dotenv-path .custom.env --verbose
+myproject -q "foo" --dotenv-path .custom.env --debug
+
+ls -1 logs/PROD/
 ```
 
 
----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ---
 
-## Scenario 5: Manually Set Env Variables Override `.env` Files
+## Scenario 5: Manually set environment variables override .env file values
 
-### PowerShell
+
+1. Rest environment variables
 
 ```powershell
-foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACKUP_COUNT", "DOTENV_PATH") {
-    if (Test-Path "Env:$var") { Remove-Item "Env:$var" }
-}
+make env-clear
+```
+
+2. Create multiple .envs file with values you expect to override (they will be ignored)
+
+- `.env`
+
+```powershell
+@"
+MYPROJECT_ENV=PROD
+MYPROJECT_LOG_MAX_BYTES=1000
+MYPROJECT_LOG_BACKUP_COUNT=2
+"@ | Set-Content .env
+```
+
+- `custom.env`
+
+```powershell
+@"
+MYPROJECT_ENV=DEV
+MYPROJECT_LOG_MAX_BYTES=500
+MYPROJECT_LOG_BACKUP_COUNT=2
+"@ | Set-Content custom.env
+```
+
+
+3. Manually export an environment variable that conflicts with other .env files
+
+```powershell
+$env:MYPROJECT_ENV = "UAT"
+```
+
+4. Run CLI (simple)
+
+```powershell
+myproject -q "manual env test"
+```
+
+![s5_1](https://github.com/user-attachments/assets/56b4859b-6ef3-4d8c-a11b-26cfa9f71ff3)
+
+
+
+5. Run CLI (verbose)
+
+```powershell
+myproject -q "manual env test" --debug
+```
+
+![s5_2](https://github.com/user-attachments/assets/0afe6a83-1d5b-4d56-92c6-ec90a13fb607)
+
+
+6. Run CLI (debug)
+
+```powershell
+myproject -q "manual env test" --verbose
+```
+
+![s5_3](https://github.com/user-attachments/assets/627ff9ba-e5db-4dc6-9e4d-f07e745adc15)
+
+
+
+
+7. Verify log files
+
+ ```powershell
+Get-ChildItem .\logs\UAT\| Select-Object -ExpandProperty Name
+```
+
+
+![s5_4](https://github.com/user-attachments/assets/a833452f-b3a9-46bc-907c-ec2d37d32648)
+
+
+
+
+### Summary
+#### PowerShell
+
+```powershell
+make clear-env
 
 @"
 MYPROJECT_ENV=PROD
@@ -449,13 +503,18 @@ MYPROJECT_LOG_BACKUP_COUNT=2
 "@ | Set-Content custom.env
 
 $env:MYPROJECT_ENV = "UAT"
+
 myproject -q "manual env test"
+myproject -q "manual env test" --verbose
+myproject -q "manual env test" --debug
+
+Get-ChildItem .\logs\UAT\| Select-Object -ExpandProperty Name
 ```
 
-### Linux
+#### Linux
 
 ```bash
-unset MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
+make clear-env
 
 cat > .env <<EOF
 MYPROJECT_ENV=PROD
@@ -470,13 +529,120 @@ MYPROJECT_LOG_BACKUP_COUNT=2
 EOF
 
 export MYPROJECT_ENV=UAT
+
 myproject -q "manual env test"
+myproject -q "manual env test" --verbose
+myproject -q "manual env test" --debug
+
+ls -1 logs/UAT/
 ```
+
+
 
 ---
 
-## Scenario 6: `.env.test` Is Used in Test Context (`PYTEST_CURRENT_TEST`)
+## Scenario 6: `env.test` is automatically loaded in test context (`PYTEST_CURRENT_TEST` is set)
 
+
+1. Rest environment variables
+
+```powershell
+make env-clear
+```
+
+2. Create multiple `.env` files with conflicting values
+
+- `.env`
+
+```powershell
+@"
+MYPROJECT_ENV=PROD
+MYPROJECT_LOG_MAX_BYTES=5000
+MYPROJECT_LOG_BACKUP_COUNT=1
+"@ | Set-Content .env
+```
+
+- `.env.sample`
+  
+```powershell
+@"
+MYPROJECT_ENV=UAT
+MYPROJECT_LOG_MAX_BYTES=1000
+MYPROJECT_LOG_BACKUP_COUNT=2
+"@ | Set-Content .env.sample
+```
+
+- `.custom.env`
+
+```powershell
+@"
+MYPROJECT_ENV=DEV
+MYPROJECT_LOG_MAX_BYTES=999
+MYPROJECT_LOG_BACKUP_COUNT=3
+"@ | Set-Content .custom.env
+```
+
+3. Create `.env.test` with test-specific values (expected to take precedence)
+
+```powershell
+@"
+MYPROJECT_ENV=TEST
+MYPROJECT_LOG_MAX_BYTES=123
+MYPROJECT_LOG_BACKUP_COUNT=7
+"@ | Set-Content .env.test
+```
+
+4.Manually set a conflicting environment variable (should still be ignored)
+
+`$env:MYPROJECT_ENV = "MANUAL"`
+
+5. Simulate test context by setting `PYTEST_CURRENT_TEST`
+
+`$env:PYTEST_CURRENT_TEST = "simulate-test"`
+
+
+6. Run CLI (simple)
+
+```powershell
+myproject -q "test context env"
+```
+
+![s6_1](https://github.com/user-attachments/assets/8bc5eefb-541e-4e1f-bea0-43ad4309f81c)
+
+
+7. Run CLI (verbose)
+
+```powershell
+myproject -q "test context env" --verbose
+```
+
+![s6_2](https://github.com/user-attachments/assets/d4cd24ec-a233-40fa-bdaf-6afb162b2fa3)
+
+
+
+
+8. Run CLI (debug)
+
+```powershell
+myproject -q "test context env" --debug
+```
+
+
+![s6_3](https://github.com/user-attachments/assets/ab41efd9-c81c-40b7-a222-925c35734e7c)
+
+
+
+7. Verify log files
+
+ ```powershell
+Get-ChildItem .\logs\TEST\| Select-Object -ExpandProperty Name
+```
+
+![s6_4](https://github.com/user-attachments/assets/9b32b556-78b2-4e82-96c1-5ad2dda63fbb)
+
+
+
+### Summary
 ### PowerShell
 
 ```powershell
@@ -512,6 +678,10 @@ $env:MYPROJECT_ENV = "MANUAL"
 $env:PYTEST_CURRENT_TEST = "simulate-test"
 
 myproject -q "test context env"
+myproject -q "test context env" --verbose
+myproject -q "test context env" --debug
+
+Get-ChildItem .\logs\TEST\| Select-Object -ExpandProperty Name
 ```
 
 ### Linux
@@ -547,7 +717,14 @@ export MYPROJECT_ENV=MANUAL
 export PYTEST_CURRENT_TEST="simulate-test"
 
 myproject -q "test context env"
+myproject -q "test context env" --verbose
+myproject -q "test context env" --debug
+
+find logs/TEST/ -maxdepth 1 -mindepth 1 -printf "%f\n"
+
+
 ```
+
 
 ---
 
