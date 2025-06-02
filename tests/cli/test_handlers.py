@@ -79,3 +79,22 @@ def test_process_query_or_simulate_real(env: str) -> None:
     result = process_query_or_simulate(args, sett)
     expected = args.query if env in {"UAT", "PROD"} else f"Processed query: {args.query}"
     assert result == expected
+
+
+def test_process_query_or_simulate_dev_error(capsys: CaptureFixture[str]) -> None:
+    """Simulate an error in DEV mode to hit _simulate_error and exception handler."""
+    args = Namespace(
+        query="fail",  # triggers _simulate_error()
+        format="text",
+        verbose=True,
+        debug=False,
+        color="never",
+    )
+    sett = FakeSettingsModule("DEV")
+
+    with pytest.raises(ValueError, match="Simulated runtime failure") as excinfo:
+        process_query_or_simulate(args, sett)
+
+    out, err = capsys.readouterr()
+    assert "simulating logic in dev mode" in out.lower()
+    assert "simulated runtime failure" in str(excinfo.value).lower()

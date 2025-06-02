@@ -4,7 +4,7 @@ import pytest
 
 import myproject.constants as const
 from myproject import __version__
-from myproject.core import example_hello, process_query, sanitize_input
+from myproject.core import example_hello, process_query, sanitize_input, simulate_failure
 
 # --- Version & Constant Tests ---
 
@@ -69,3 +69,17 @@ def test_sanitize_input_rejects_invalid(bad_input: str | None) -> None:
     """Ensure sanitize_input raises ValueError on invalid input."""
     with pytest.raises(ValueError, match="cannot be empty"):
         sanitize_input(bad_input)
+
+
+def test_simulate_failure_passes_on_valid_input() -> None:
+    assert simulate_failure("hello") == "HELLO"
+    assert simulate_failure("SAFE string") == "SAFE STRING"
+
+
+def test_simulate_failure_raises_on_fail_keyword() -> None:
+    with pytest.raises(ValueError, match="Simulated processing failure"):
+        simulate_failure("this will fail")
+    with pytest.raises(ValueError, match="Simulated processing failure"):
+        simulate_failure("FAIL")
+    with pytest.raises(ValueError, match="Simulated processing failure"):
+        simulate_failure("Please Fail Now")
