@@ -89,7 +89,6 @@ python-project-template/
 
 ### 🧱 Architecture
 
-### 🧱 Architecture
 
 This project follows a layered architecture emphasizing modularity, testability, and real-world deployment practices.
 
