@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 _QUERY_EMPTY_ERROR = "Query string cannot be empty."
+_SIMULATED_FAILURE_MSG = "Simulated processing failure triggered by input."
 
 
 def sanitize_input(value: str | None) -> str:
@@ -31,11 +32,10 @@ def process_query(query: str | None) -> str:
         query: Raw user input.
 
     Returns:
-        A safely formatted string based on the query.
+        A clean or transformed version of the query.
     """
-    clean_query = sanitize_input(query)
     # Placeholder logic — replace with real implementation
-    return f"Processed query: {clean_query}"
+    return sanitize_input(query)
 
 
 def example_hello() -> str:
@@ -46,3 +46,15 @@ def example_hello() -> str:
         A static greeting string.
     """
     return "Hello from core!"
+
+
+def simulate_failure(input_str: str) -> str:
+    """
+    Simulates a runtime failure to demonstrate error logging.
+
+    Raises:
+        ValueError: If input contains the word 'fail' (case-insensitive).
+    """
+    if "fail" in input_str.lower():
+        raise ValueError(_SIMULATED_FAILURE_MSG)
+    return input_str.upper()

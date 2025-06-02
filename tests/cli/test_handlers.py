@@ -77,4 +77,5 @@ def test_process_query_or_simulate_real(env: str) -> None:
     args = Namespace(query="real run", format="text", verbose=False, debug=False, color="never")
     sett = FakeSettingsModule(env)
     result = process_query_or_simulate(args, sett)
-    assert result == "Processed query: real run"
+    expected = args.query if env in {"UAT", "PROD"} else f"Processed query: {args.query}"
+    assert result == expected

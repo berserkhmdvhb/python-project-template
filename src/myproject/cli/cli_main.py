@@ -76,17 +76,17 @@ def main(argv: list[str] | None = None) -> None:
             logger.warning(msg)
         sys.exit(const.EXIT_CANCELLED)
 
-    except Exception as e:
-        if verbose:
-            formatted_error = format_error(f"Unexpected error: {e}", use_color=use_color)
-            sys.stderr.write(formatted_error + "\n")
-        else:
-            logger.exception("Unexpected error", exc_info=e)
+    except Exception as exc:
+        logger = logging.getLogger("myproject")
+        logger.exception("Unhandled error during CLI execution")
+
+        # Always show basic error to user
+        sys.stderr.write(format_error(f"Error: {exc}", use_color=use_color) + "\n")
 
         if args.debug:
             traceback.print_exc()
 
-        sys.exit(const.EXIT_INVALID_USAGE)
+        sys.exit(const.EXIT_ERROR)
 
     finally:
         teardown_logger(logger)

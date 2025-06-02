@@ -14,6 +14,7 @@ EXIT_SUCCESS: Final = 0
 EXIT_INVALID_USAGE: Final = 1
 EXIT_ARGPARSE_ERROR: Final = 2
 EXIT_CANCELLED: Final = 130
+EXIT_ERROR: Final = 3
 
 # -----------------------------------------------------------------------------
 # Logging (static pieces)

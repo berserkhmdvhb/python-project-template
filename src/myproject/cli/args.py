@@ -24,6 +24,12 @@ def nonempty_str(value: str) -> str:
 
 class LoggingArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
+        from logging import getLogger
+
+        logger = getLogger("myproject")
+        if logger.hasHandlers():
+            logger.error("Argument parsing error: %s", message)
+
         use_color = should_use_color("auto")
         sys.stderr.write(format_error(f"argument error: {message}", use_color=use_color) + "\n\n")
         self.print_help(sys.stderr)

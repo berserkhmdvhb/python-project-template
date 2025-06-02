@@ -47,7 +47,7 @@ def test_process_query_behavior(input_value: str | None, *, should_raise: bool) 
             process_query(input_value)
     else:
         assert isinstance(input_value, str)
-        expected = f"Processed query: {input_value.strip()}"
+        expected = f"{input_value.strip()}"
         assert process_query(input_value) == expected
 
 

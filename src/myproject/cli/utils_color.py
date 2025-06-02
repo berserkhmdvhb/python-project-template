@@ -35,9 +35,9 @@ COLOR_CODELINE: Final = Fore.YELLOW
 COLOR_ERROR: Final = Fore.RED
 COLOR_INFO: Final = Fore.BLUE
 COLOR_SUCCESS: Final = Fore.GREEN
-COLOR_WARNING: Final = Fore.MAGENTA
+COLOR_WARNING: Final = Fore.YELLOW
 COLOR_DEBUG: Final = Fore.LIGHTBLACK_EX
-COLOR_SETTINGS: Final = Fore.LIGHTBLACK_EX  # Matches DEBUG color
+COLOR_SETTINGS: Final = Fore.LIGHTBLACK_EX
 RESET: Final = Style.RESET_ALL
 
 logger = logging.getLogger("myproject")

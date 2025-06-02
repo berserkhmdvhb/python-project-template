@@ -47,13 +47,28 @@ def test_valid_query_verbose_text(run_cli: Callable[..., tuple[str, str, int]]) 
 
 def test_format_json_with_verbose_logging(run_cli: Callable[..., tuple[str, str, int]]) -> None:
     out, err, code = run_cli(
-        "--query", "hello", "--format", "json", "--verbose", env={"MYPROJECT_ENV": "DEV"}
+        "--query", "hello", "--format", "json", "--verbose", env={"MYPROJECT_ENV": "UAT"}
     )
     assert code == const.EXIT_SUCCESS
-    assert "[INFO]" in out or "[DEBUG]" in out
+    assert "[DEBUG]" not in out
+
+    # Find JSON block
     json_start = out.find("{")
-    assert json_start != -1
-    payload = json.loads(out[json_start:])
+    json_end = out.rfind("}") + 1
+    assert json_start != -1, "No JSON start found in output"
+    assert json_end > json_start, "Invalid JSON range: end before start"
+
+    json_block = out[json_start:json_end]
+    payload = json.loads(json_block)
+
+    # Extract surrounding logs
+    before = out[:json_start]
+    after = out[json_end:]
+
+    assert "[INFO]" in before, "Expected [INFO] log before JSON"
+    assert "[INFO]" in after, "Expected [INFO] log after JSON"
+
+    # Validate JSON structure
     assert payload["input"] == "hello"
     assert "output" in payload
 
@@ -152,7 +167,7 @@ def test_internal_error(monkeypatch: MonkeyPatch) -> None:
     with pytest.raises(SystemExit) as excinfo:
         myproject.cli.cli_main.main()
 
-    assert excinfo.value.code == const.EXIT_INVALID_USAGE
+    assert excinfo.value.code == const.EXIT_ERROR
 
 
 def test_dotenv_path_not_found(
@@ -260,7 +275,7 @@ def test_handles_exception(
     ):
         cli_main.main()
 
-    assert excinfo.value.code == const.EXIT_INVALID_USAGE
+    assert excinfo.value.code == const.EXIT_ERROR
 
     captured = capsys.readouterr()
     combined_output = captured.out + captured.err
