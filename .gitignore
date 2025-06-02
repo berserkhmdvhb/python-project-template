@@ -37,6 +37,7 @@ htmlcov/
 .cache
 pytest_cache/
 coverage.xml
+.coveralls.yml
 
 # MyPy
 .mypy_cache/
@@ -56,7 +57,6 @@ coverage.xml
 # Logs (recursive)
 **/*.log
 **/*.log.*
-
 
 # OS metadata
 .DS_Store
