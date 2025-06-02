@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 import myproject.constants as const
 
@@ -164,3 +164,30 @@ def get_default_log_level() -> str:
 def resolve_loaded_dotenv_paths() -> list[Path]:
     """Expose resolved .env paths for CLI debug introspection."""
     return _resolve_dotenv_paths()
+
+
+def print_dotenv_debug() -> None:
+    """Log details of the resolved .env file and its contents."""
+    paths = _resolve_dotenv_paths()
+
+    if not paths:
+        logger.info("[dotenv-debug] No .env file found or resolved.")
+        logger.info("[dotenv-debug] Environment variables may only be coming from the OS.")
+        return
+
+    path = paths[0]
+    logger.info("[dotenv-debug] Selected .env file: %s", path)
+
+    try:
+        values = dotenv_values(dotenv_path=path)
+        if not values:
+            logger.info(
+                "[dotenv-debug] .env file is empty, unreadable, or contains no key-value pairs."
+            )
+            return
+
+        logger.info("[dotenv-debug] Loaded key-value pairs:")
+        for key, value in values.items():
+            logger.info("  %s=%s", key, value)
+    except OSError:
+        logger.exception("[dotenv-debug] Error reading .env file")

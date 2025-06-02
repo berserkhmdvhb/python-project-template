@@ -1,4 +1,5 @@
-.PHONY: all help install develop lint format format-check linting \
+.PHONY: all help install develop \
+        fmt fmt-check lint-ruff type-check lint-all lint-all-check \
         test test-file test-fast testing \
         test-coverage test-coverage-xml test-cov-html test-coverage-rep test-coverage-file clean-coverage \
         check-all test-watch \
@@ -27,10 +28,12 @@ help::
 	@echo "  install                Install the package in editable mode"
 	@echo "  develop                Install with all dev dependencies"
 	@echo ""
-	@echo "  lint                   Run Ruff and MyPy for static analysis"
-	@echo "  format                 Auto-format using Ruff"
-	@echo "  format-check           Check formatting (dry run)"
-	@echo "  linting                Run format-check and lint together"
+	@echo "  fmt                    Auto-format code using Ruff"
+	@echo "  fmt-check              Check code formatting (dry run)"
+	@echo "  lint-ruff              Run Ruff linter"
+	@echo "  type-check             Run MyPy static type checker"
+	@echo "  lint-all               Run formatter, linter, and type checker"
+	@echo "  lint-all-check         Dry run: check formatting, lint, and types"
 	@echo ""
 	@echo "  test                   Run all tests using Pytest"
 	@echo "  test-file              Run a single test file or keyword with FILE=... (e.g. make test-file FILE=tests/cli/test_main.py)"
@@ -79,19 +82,26 @@ develop:
 	$(PYTHON) -m pip install -e .[dev]
 
 # -------------------------------------------------------------------
-# Linting & Formatting
+# Formatting
 # -------------------------------------------------------------------
-lint:
-	ruff check src/ tests/
-	mypy src/ tests/
-
-format:
+fmt:
 	ruff format src/ tests/
 
-format-check:
+fmt-check:
 	ruff format --check src/ tests/
 
-linting: format-check lint
+# -------------------------------------------------------------------
+# Linting / Type Checking
+# -------------------------------------------------------------------
+lint-ruff:
+	ruff check src/ tests/
+
+type-check:
+	mypy src/ tests/
+
+lint-all: fmt lint-ruff type-check
+
+lint-all-check: fmt-check lint-ruff type-check
 
 # -------------------------------------------------------------------
 # Testing
@@ -128,7 +138,7 @@ clean-coverage:
 
 testing: test-cov-html
 
-check-all: linting test-coverage
+check-all: lint-all-check test-coverage
 
 test-watch:
 	ptw --runner "$(PYTHON) -m pytest -v" tests/
@@ -162,7 +172,8 @@ env-example:
 	@echo "  export MYPROJECT_DEBUG_ENV_LOAD=1"
 
 dotenv-debug:
-	$(PYTHON) -c "from myproject.settings import print_dotenv_debug; print_dotenv_debug()"
+	@echo "==> Debugging dotenv loading via print_dotenv_debug()"
+	$(PYTHON) -c "import logging; logging.basicConfig(level=logging.INFO); from myproject.settings import print_dotenv_debug; print_dotenv_debug()"
 
 # -------------------------------------------------------------------
 # Security & Dependency Management
