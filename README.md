@@ -1,6 +1,6 @@
 # 🧰 python-project-template
 
-[![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE.txt)
+[![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE)
 [![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
 
