@@ -180,14 +180,16 @@ def print_dotenv_debug() -> None:
 
     try:
         values = dotenv_values(dotenv_path=path)
+
         if not values:
             logger.info(
-                "[dotenv-debug] .env file is empty, unreadable, or contains no key-value pairs."
+                "[dotenv-debug] .env file exists but is empty or contains no key-value pairs."
             )
             return
 
         logger.info("[dotenv-debug] Loaded key-value pairs:")
         for key, value in values.items():
-            logger.info("  %s=%s", key, value)
-    except OSError:
-        logger.exception("[dotenv-debug] Error reading .env file")
+            logger.info("[dotenv-debug]   %s=%s", key, value)
+
+    except Exception:
+        logger.exception("[dotenv-debug] Failed to read .env file")
