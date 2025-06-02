@@ -1,57 +1,82 @@
-.PHONY: help install develop lint format format-check test test-file test-fast \
-        test-coverage test-coverage-xml show-coverage show-coverage-file clean-coverage \
-        check-all test-cov-html test-watch \
+.PHONY: all help install develop lint format format-check linting \
+        test test-file test-fast testing \
+        test-coverage test-coverage-xml test-cov-html test-coverage-rep test-coverage-file clean-coverage \
+        check-all test-watch \
         precommit precommit-run precommit-check \
-        env-check env-debug dotenv-debug \
-        safety check-updates \
+        env-check env-debug dotenv-debug env-example \
+        safety check-updates check-toml \
         build clean clean-pyc clean-all \
-        publish publish-test upload-coverage
+        publish publish-test publish-dryrun upload-coverage
+
+# -------------------------------------------------------------------
+# Configuration
+# -------------------------------------------------------------------
+PYTHON := python
+
+# -------------------------------------------------------------------
+# Default
+# -------------------------------------------------------------------
+all: help
 
 # -------------------------------------------------------------------
 # Help
 # -------------------------------------------------------------------
-help:
+help::
 	@echo "Available Makefile commands:"
+	@echo ""
 	@echo "  install                Install the package in editable mode"
 	@echo "  develop                Install with all dev dependencies"
+	@echo ""
 	@echo "  lint                   Run Ruff and MyPy for static analysis"
 	@echo "  format                 Auto-format using Ruff"
 	@echo "  format-check           Check formatting (dry run)"
+	@echo "  linting                Run format-check and lint together"
+	@echo ""
 	@echo "  test                   Run all tests using Pytest"
-	@echo "  test-file              Run a single test file or keyword with FILE=... (e.g. make test-file FILE=tests/test_cli.py)"
+	@echo "  test-file              Run a single test file or keyword with FILE=... (e.g. make test-file FILE=tests/cli/test_main.py)"
 	@echo "  test-fast              Run only last failed tests"
+	@echo ""
 	@echo "  test-coverage          Run tests and show terminal coverage summary"
 	@echo "  test-coverage-xml      Run tests and generate XML coverage report"
-	@echo "  show-coverage          Show full line-by-line coverage report"
-	@echo "  show-coverage-file     Show coverage for a specific file: FILE=... (e.g. make show-coverage-file FILE=src/myproject/cli/main.py)"
-	@echo "  clean-coverage         Erase cached coverage data"
 	@echo "  test-cov-html          Run tests with HTML coverage report and open it"
+	@echo "  test-coverage-rep      Show full line-by-line coverage report"
+	@echo "  test-coverage-file     Show coverage for a specific file: FILE=... (e.g. make test-coverage-file FILE=src/myproject/cli/cli_main.py)"
+	@echo "  clean-coverage         Erase cached coverage data"
+	@echo ""
 	@echo "  test-watch             Auto-rerun tests on file changes"
 	@echo "  check-all              Run format-check, lint, and full test suite"
+	@echo ""
 	@echo "  precommit              Install pre-commit hook"
-	@echo "  precommit-check        Dry run pre-commit hook"
+	@echo "  precommit-check        Dry run all pre-commit hooks"
 	@echo "  precommit-run          Run all pre-commit hooks"
-	@echo "  env-check              Show Python, virtualenv, and environment info"
-	@echo "  env-debug              Show debug-related environment info"
-	@echo "  dotenv-debug           Print dotenv loading debug info"
-	@echo "  safety                 Run dependency vulnerability check"
+	@echo ""
+	@echo "  env-check              Show Python and environment info"
+	@echo "  env-debug              Show debug-related env info"
+	@echo "  env-example            Show example env variable usage"
+	@echo "  dotenv-debug           Show debug info from dotenv loader"
+	@echo ""
+	@echo "  safety                 Check dependencies for vulnerabilities"
 	@echo "  check-updates          List outdated pip packages"
+	@echo "  check-toml             Check pyproject.toml for syntax validity"
+	@echo ""
 	@echo "  build                  Build package for distribution"
 	@echo "  clean                  Remove build artifacts"
-	@echo "  clean-pyc              Remove __pycache__ and .pyc files"
-	@echo "  clean-all              Remove all caches, logs, coverage, etc."
+	@echo "  clean-pyc              Remove .pyc and __pycache__ files"
+	@echo "  clean-all              Remove all build, test, and log artifacts"
+	@echo ""
 	@echo "  publish-test           Upload to TestPyPI"
+	@echo "  publish-dryrun         Validate and simulate TestPyPI upload"
 	@echo "  publish                Upload to PyPI"
-	@echo "  upload-coverage        Upload coverage to Coveralls"
+	@echo "  upload-coverage        Upload coverage report to Coveralls"
 
 # -------------------------------------------------------------------
 # Install & Development
 # -------------------------------------------------------------------
 install:
-	pip install -e .
+	$(PYTHON) -m pip install -e .
 
 develop:
-	pip install -e .[dev]
+	$(PYTHON) -m pip install -e .[dev]
 
 # -------------------------------------------------------------------
 # Linting & Formatting
@@ -66,51 +91,47 @@ format:
 format-check:
 	ruff format --check src/ tests/
 
+linting: format-check lint
+
 # -------------------------------------------------------------------
 # Testing
 # -------------------------------------------------------------------
 test:
-	pytest tests/ -v
+	$(PYTHON) -m pytest tests/ -v
 
 test-file:
-	pytest $(FILE) -v
+	@$(PYTHON) -c "import sys; f = '$(FILE)'; sys.exit(0) if f else (print('Usage: make test-file FILE=path/to/file.py'), sys.exit(1))"
+	$(PYTHON) -m pytest $(FILE) -v
 
 test-fast:
-	pytest --lf -x -v
+	$(PYTHON) -m pytest --lf -x -v
 
 test-coverage:
-	pytest --cov=myproject --cov-report=term
+	$(PYTHON) -m pytest --cov=myproject --cov-report=term --cov-fail-under=100
 
 test-coverage-xml:
-	pytest --cov=myproject --cov-report=term --cov-report=xml
+	$(PYTHON) -m pytest --cov=myproject --cov-report=term --cov-report=xml
 
 test-cov-html:
-	pytest --cov=myproject --cov-report=html
-ifeq ($(OS),Windows_NT)
-	start htmlcov\index.html
-else
-	open htmlcov/index.html
-endif
+	$(PYTHON) -m pytest --cov=myproject --cov-report=html
+	$(PYTHON) -c "import webbrowser; webbrowser.open('htmlcov/index.html')"
 
-
-show-coverage:
+test-coverage-rep:
 	coverage report -m
 
-show-coverage-file:
-ifeq ($(FILE),)
-	@echo "Usage: make show-coverage-file FILE=path/to/file.py"
-	@exit 1
-else
+test-coverage-file:
+	@$(PYTHON) -c "import sys; f = '$(FILE)'; sys.exit(0) if f else (print('Usage: make test-coverage-file FILE=path/to/file.py'), sys.exit(1))"
 	coverage report -m $(FILE)
-endif
 
 clean-coverage:
 	coverage erase
 
-check-all: format-check lint test-coverage
+testing: test-cov-html
+
+check-all: linting test-coverage
 
 test-watch:
-	ptw --runner "pytest -v" tests/
+	ptw --runner "$(PYTHON) -m pytest -v" tests/
 
 # -------------------------------------------------------------------
 # Pre-commit Hooks
@@ -129,14 +150,19 @@ precommit-run:
 # -------------------------------------------------------------------
 env-check:
 	@echo "Python: $$(python --version)"
-	@echo "Virtualenv: $$(which python)"
+	@$(PYTHON) -c "import sys; print('Virtualenv:', sys.executable)"
 	@echo "Environment: $${MYPROJECT_ENV:-not set}"
 
 env-debug:
 	@echo "Debug: $${MYPROJECT_DEBUG_ENV_LOAD:-not set}"
 
+env-example:
+	@echo "Example usage:"
+	@echo "  export MYPROJECT_ENV=dev"
+	@echo "  export MYPROJECT_DEBUG_ENV_LOAD=1"
+
 dotenv-debug:
-	python -c "from myproject.settings import print_dotenv_debug; print_dotenv_debug()"
+	$(PYTHON) -c "from myproject.settings import print_dotenv_debug; print_dotenv_debug()"
 
 # -------------------------------------------------------------------
 # Security & Dependency Management
@@ -145,28 +171,36 @@ safety:
 	safety scan
 
 check-updates:
-	pip list --outdated
+	$(PYTHON) -m pip list --outdated
+
+check-toml:
+	@$(PYTHON) -c "import tomllib; tomllib.load(open('pyproject.toml', 'rb')); print('pyproject.toml syntax is valid')"
 
 # -------------------------------------------------------------------
 # Build & Distribution
 # -------------------------------------------------------------------
 build:
-	python -m build
+	$(PYTHON) -m build
 
 clean:
-	python -c "import shutil, glob; [shutil.rmtree(p, ignore_errors=True) for p in ['dist', 'build'] + glob.glob('*.egg-info')]"
+	$(PYTHON) -c "import shutil, glob; [shutil.rmtree(p, ignore_errors=True) for p in ['dist', 'build'] + glob.glob('*.egg-info')]"
 
 clean-pyc:
-	python -c "import pathlib, shutil; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]"
+	@echo "Removing .pyc and __pycache__ files..."
+	$(PYTHON) -c "import pathlib, shutil; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]"
 
 clean-all: clean clean-pyc
-	python -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.log')]"
-	python -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in map(pathlib.Path, ['.pytest_cache', '.mypy_cache', '.ruff_cache', 'htmlcov']) if p.exists()]"
-	python -c "import pathlib; [p.unlink() for p in map(pathlib.Path, ['.coverage', 'coverage.xml']) if p.exists()]"
-
+	@echo "Removing logs and cache files..."
+	$(PYTHON) -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.log')]"
+	$(PYTHON) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in map(pathlib.Path, ['.pytest_cache', '.mypy_cache', '.ruff_cache', 'htmlcov']) if p.exists()]"
+	$(PYTHON) -c "import pathlib; [p.unlink() for p in map(pathlib.Path, ['.coverage', 'coverage.xml']) if p.exists()]"
 
 publish-test:
 	twine upload --repository testpypi dist/*
+
+publish-dryrun:
+	twine check dist/*
+	twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing --non-interactive dist/*
 
 publish:
 	twine check dist/*

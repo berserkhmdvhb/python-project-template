@@ -96,9 +96,7 @@ per-file-ignores = {"tests/*" = ["S101", "S603"], "src/myproject/cli/utils_color
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--maxfail=1 -v"
-norecursedirs = [
-  "tests/cli/old"
-]
+norecursedirs = ["tests/cli/old"]
 filterwarnings = [
   "ignore::pytest.PytestUnhandledThreadExceptionWarning"
 ]
