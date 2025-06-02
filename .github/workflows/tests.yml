@@ -46,12 +46,12 @@ jobs:
         run: python -m myproject --version
 
       - name: 🎨 Format check (dry run)
-        run: make format
+        run: make format-check
 
       - name: 🔎 Lint check
         run: make lint
 
-      - name: 🧪 Run tests with coverage
+      - name: 🧪 Run tests with coverage (XML)
         run: make test-coverage-xml
 
       - name: ✅ Assert coverage.xml exists
