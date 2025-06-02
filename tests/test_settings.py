@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+from io import StringIO
 from pathlib import Path
+from types import ModuleType
 from typing import TYPE_CHECKING, Callable
 
 import pytest
 
 import myproject.settings as sett
+from myproject.cli.utils_logger import LOGGER_NAME, teardown_logger
 from myproject.constants import (
     DEFAULT_LOG_ROOT,
     ENV_ENVIRONMENT,
@@ -226,3 +230,33 @@ def test_no_dotenv_file(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sett, "_resolve_dotenv_paths", list)
     result = sett.load_settings(verbose=True)
     assert result == []
+
+
+def test_print_dotenv_debug_valid(
+    tmp_path: Path,
+    log_stream: StringIO,
+    monkeypatch: pytest.MonkeyPatch,
+    load_fresh_settings: Callable[[Path | None], ModuleType],
+) -> None:
+    dotenv = tmp_path / ".env"
+    dotenv.write_text("MYPROJECT_ENV=DEV\nFOO=bar\n")
+
+    # Patch resolution
+    monkeypatch.setattr("myproject.settings._resolve_dotenv_paths", lambda: [dotenv])
+    settings = load_fresh_settings(dotenv)
+
+    # Use actual setup_logging logic for consistency
+    teardown_logger()
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.DEBUG)
+
+    stream_handler = logging.StreamHandler(log_stream)
+    stream_handler.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.addHandler(stream_handler)
+
+    settings.print_dotenv_debug()
+
+    output = log_stream.getvalue()
+    assert "Selected .env file" in output
+    assert "FOO=bar" in output

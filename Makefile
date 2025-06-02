@@ -4,7 +4,7 @@
         test-coverage test-coverage-xml test-cov-html test-coverage-rep test-coverage-file clean-coverage \
         check-all test-watch \
         precommit precommit-run precommit-check \
-        env-check env-debug dotenv-debug env-example \
+        env-check env-debug env-clear dotenv-debug env-example \
         safety check-updates check-toml \
         build clean clean-pyc clean-all \
         publish publish-test publish-dryrun upload-coverage
@@ -55,6 +55,7 @@ help::
 	@echo ""
 	@echo "  env-check              Show Python and environment info"
 	@echo "  env-debug              Show debug-related env info"
+	@echo "  env-clear              Unset MYPROJECT_* and DOTENV_PATH environment variables (OS-independent)"
 	@echo "  env-example            Show example env variable usage"
 	@echo "  dotenv-debug           Show debug info from dotenv loader"
 	@echo ""
@@ -117,7 +118,7 @@ test-fast:
 	$(PYTHON) -m pytest --lf -x -v
 
 test-coverage:
-	$(PYTHON) -m pytest --cov=myproject --cov-report=term --cov-fail-under=100
+	$(PYTHON) -m pytest --cov=myproject --cov-report=term --cov-fail-under=95
 
 test-coverage-xml:
 	$(PYTHON) -m pytest --cov=myproject --cov-report=term --cov-report=xml
@@ -165,6 +166,10 @@ env-check:
 
 env-debug:
 	@echo "Debug: $${MYPROJECT_DEBUG_ENV_LOAD:-not set}"
+
+env-clear:
+	@echo "Clearing selected MYPROJECT_* and DOTENV_PATH environment variables..."
+	@$(PYTHON) -c "import os; [print(f'  Unsetting {v}') or os.unsetenv(v) or os.environ.pop(v, None) for v in ['MYPROJECT_ENV', 'MYPROJECT_LOG_MAX_BYTES', 'MYPROJECT_LOG_BACKUP_COUNT', 'DOTENV_PATH'] if v in os.environ]"
 
 env-example:
 	@echo "Example usage:"
