@@ -46,10 +46,13 @@ jobs:
         run: python -m myproject --version
 
       - name: 🎨 Format check (dry run)
-        run: make format-check
+        run: make fmt-check
 
-      - name: 🔎 Lint check
-        run: make lint
+      - name: 🔍 Ruff lint check
+        run: make lint-ruff
+
+      - name: 🔎 Type checking
+        run: make type-check
 
       - name: 🧪 Run tests with coverage (XML)
         run: make test-coverage-xml
