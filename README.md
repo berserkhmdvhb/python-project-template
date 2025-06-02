@@ -89,25 +89,49 @@ python-project-template/
 
 ### 🧱 Architecture
 
-#### 1. **Environment Configuration**
+### 🧱 Architecture
 
-* `settings.py`: loads `.env` files or system envs
-* Supports override path, test mode, fallback chain
+This project follows a layered architecture emphasizing modularity, testability, and real-world deployment practices.
 
-#### 2. **CLI Layer**
+#### 1. **Configuration Layer (`settings.py`)**
 
-* Modular CLI: parser, handlers, formatting, logger setup
-* Runs via `myproject` or `python -m myproject`
+Handles environment setup and `.env` management:
 
-#### 3. **Core Logic**
+- Loads variables from system or `.env*` files (fallback chain)
+- Respects CLI overrides (`--env`, `--dotenv-path`)
+- Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
+- Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
 
-* `core.py`: clean, reusable pure functions
+#### 2. **CLI Layer (`cli/`)**
 
-#### 4. **Testing Design**
+Handles user interaction and command routing:
 
-* Full isolation: core vs CLI vs env vs logger
-* Hybrid tests: subprocess + unit
-* 100% coverage with detailed Make targets
+- `main.py`: Entrypoint CLI dispatcher (run via `myproject` or `python -m`)
+- `parser.py`: Parses arguments with early env loading
+- `cli_main.py`: Coordinates CLI logic and handles output formatting
+- `handlers.py`: Routes commands to logic
+- `color_utils.py`: Handles styled terminal output (info, error, hint)
+- `logger_utils.py`: Sets up logging with rotation and per-env folders
+
+#### 3. **Core Layer (`core.py`)**
+
+Holds the core logic / business rules:
+
+- Pure, reusable functions
+- Independent of CLI or environment setup
+- Fully typed and testable in isolation
+
+#### 4. **Utility Layer**
+
+- `constants.py`: Centralized default values and exit codes
+- `utils_logger.py`: Shared logging utilities and handlers
+
+#### 5. **Test Suite (`tests/`)**
+
+- Fully modular: core, CLI, settings, logging each tested in isolation
+- Uses `pytest`, `pytest-cov`, and `subprocess` for CLI integration tests
+- Custom fixtures in `conftest.py` simulate logging, temp envs, etc.
+- Achieves and enforces **95% test coverage**
 
 ---
 
