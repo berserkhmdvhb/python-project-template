@@ -17,6 +17,12 @@ foreach ($v in $vars) {
 }
 ```
 
+or more simply:
+
+```powerhsell
+Remove-Item Env:MYPROJECT_ENV, Env:MYPROJECT_LOG_MAX_BYTES, Env:MYPROJECT_LOG_BACKUP_COUNT, Env:MYPROJECT_LOG_LEVEL, Env:MYPROJECT_DEBUG_ENV_LOAD, Env:DOTENV_PATH -ErrorAction SilentlyContinue
+```
+
 - **Linux**:
 
 ```bash
@@ -26,6 +32,12 @@ for var in MYPROJECT_ENV MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT MYPR
     unset "$var"
   fi
 done
+```
+
+or more simply:
+
+```bash
+unset MYPROJECT_ENV MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT MYPROJECT_LOG_LEVEL MYPROJECT_DEBUG_ENV_LOAD DOTENV_PATH
 ```
 
 2. To verify the env. variables that are active and set for this project, you can use following commands:
