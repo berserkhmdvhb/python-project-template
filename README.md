@@ -101,17 +101,16 @@ Handles environment setup and `.env` management:
 - Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
 - Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
 
-A summary of environment files management and prioritizing in provided below, for a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md)
+A summary of environments and env. files peresent, and the mechanism to manage and prioritize them are provided in table below. For a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md)
 
-| Test Case ID | `DOTENV_PATH` | `PYTEST_CURRENT_TEST` | `.env.override` | `.env` | `.env.sample` | Expected Result |
-| ------------ | ------------- | --------------------- | --------------- | ------ | ------------- | --------------- |
-| TC1          | ✅             | ❌                     | ✅               | ✅      | ✅             | `DOTENV_PATH`   |
-| TC2          | ❌             | ✅                     | ✅               | ✅      | ✅             | `.env.test`     |
-| TC3          | ❌             | ❌                     | ✅               | ✅      | ✅             | `.env.override` |
-| TC4          | ❌             | ❌                     | ❌               | ✅      | ✅             | `.env`          |
-| TC5          | ❌             | ❌                     | ❌               | ❌      | ✅             | `.env.sample`   |
-| TC6          | ❌             | ❌                     | ❌               | ❌      | ❌             | None            |
-
+| Priority | File            | Loaded When                   | Purpose / Use Case                                               | Committed to Git? | Override Others?   |
+| -------- | --------------- | ----------------------------- | ---------------------------------------------------------------- | ----------------- | ------------------ |
+| 1️⃣      | `DOTENV_PATH`   | Set via environment variable  | Force a custom env file at runtime (e.g. for advanced CLI usage) | ❌ (user-defined)  | ✅                  |
+| 2️⃣      | `.env.override` | Exists in project root        | Enforced values (CI/CD, production)                              | ✅                 | ✅                  |
+| 3️⃣      | `.env`          | Exists in project root        | Main team-shared configuration                                   | ✅                 | ✅ (if no override) |
+| 4️⃣      | `.env.local`    | Exists in project root        | Developer-specific overrides (not shared)                        | ❌ (`.gitignore`)  | ✅ (over `.env`)    |
+| 5️⃣      | `.env.test`     | Running under `pytest`        | Clean isolation for tests                                        | ✅ (optional)      | ✅ (in test mode)   |
+| 6️⃣      | `.env.sample`   | None of the above are present | Documentation or last-resort fallback                            | ✅                 | 🚫                 |
 
 #### 2. **CLI Layer (`cli/`)**
 
