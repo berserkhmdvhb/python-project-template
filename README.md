@@ -101,7 +101,7 @@ Handles environment setup and `.env` management:
 - Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
 - Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
 
-A summary of environments and env. files peresent, and the mechanism to manage and prioritize them are provided in table below. For a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md)
+A summary of environments and env. files peresent, and the mechanism to manage and prioritize them are provided in table below. For a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md). 
 
 | Priority | File            | Loaded When                   | Purpose / Use Case                                               | Committed to Git? | Override Others?   |
 | -------- | --------------- | ----------------------------- | ---------------------------------------------------------------- | ----------------- | ------------------ |
@@ -112,6 +112,7 @@ A summary of environments and env. files peresent, and the mechanism to manage a
 | 5️⃣      | `.env.test`     | Running under `pytest`        | Clean isolation for tests                                        | ✅ (optional)      | ✅ (in test mode)   |
 | 6️⃣      | `.env.sample`   | None of the above are present | Documentation or last-resort fallback                            | ✅                 | 🚫                 |
 
+> Note: This management or environments and prioritizing them is implemented in `src/myproject/settings.py`
 #### 2. **CLI Layer (`cli/`)**
 
 Handles user interaction and command routing:
