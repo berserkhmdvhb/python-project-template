@@ -177,9 +177,9 @@ python -m myproject --help
 | `make fmt`                         | Format code using Ruff                                      |
 | `make fmt-check`                   | Check formatting without making changes                     |
 | `make lint-ruff`                   | Run Ruff linter on codebase                                 |
-| `make type-check`                  | Run MyPy static type checks                                 |
+| `make type-check`                 | Run MyPy static type checks                                 |
 | `make lint-all`                    | Run format, lint, and type check                            |
-| `make lint-all-check`              | Dry run of all checks                                       |
+| `make lint-all-check`             | Dry run of all checks                                       |
 | `make test`                        | Run all tests using Pytest                                  |
 | `make test-file FILE=...`          | Run a specific test file or pattern                         |
 | `make test-fast`                   | Run only last failed tests                                  |
@@ -197,10 +197,11 @@ python -m myproject --help
 | `make env-check`                   | Display Python version and current environment info         |
 | `make env-debug`                   | Show debug-related environment variables                    |
 | `make env-clear`                   | Unset `MYPROJECT_*` and `DOTENV_PATH` variables             |
+| `make env-show`                    | Show currently set `MYPROJECT_*` and `DOTENV_PATH` vars     |
 | `make env-example`                 | Show example environment variable usage                     |
 | `make dotenv-debug`                | Display `.env` loading debug info using internal CLI loader |
 | `make safety`                      | Run `safety` checks for dependency vulnerabilities          |
-| `make check-updates`               | List outdated Python packages                               |
+| `make check-updates`              | List outdated Python packages                               |
 | `make check-toml`                  | Validate `pyproject.toml` syntax                            |
 | `make build`                       | Build distribution packages (`dist/`)                       |
 | `make clean`                       | Remove `dist/`, `build/`, and `.egg-info`                   |
