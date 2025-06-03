@@ -101,6 +101,18 @@ Handles environment setup and `.env` management:
 - Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
 - Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
 
+A summary of environment files management and prioritizing in provided below, for a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md)
+
+| Test Case ID | `DOTENV_PATH` | `PYTEST_CURRENT_TEST` | `.env.override` | `.env` | `.env.sample` | Expected Result |
+| ------------ | ------------- | --------------------- | --------------- | ------ | ------------- | --------------- |
+| TC1          | ✅             | ❌                     | ✅               | ✅      | ✅             | `DOTENV_PATH`   |
+| TC2          | ❌             | ✅                     | ✅               | ✅      | ✅             | `.env.test`     |
+| TC3          | ❌             | ❌                     | ✅               | ✅      | ✅             | `.env.override` |
+| TC4          | ❌             | ❌                     | ❌               | ✅      | ✅             | `.env`          |
+| TC5          | ❌             | ❌                     | ❌               | ❌      | ✅             | `.env.sample`   |
+| TC6          | ❌             | ❌                     | ❌               | ❌      | ❌             | None            |
+
+
 #### 2. **CLI Layer (`cli/`)**
 
 Handles user interaction and command routing:
