@@ -6,6 +6,7 @@ This script coordinates all parts of the CLI:
 - Sets up logging
 - Executes the query processing logic
 - Provides diagnostics via --debug
+- Supports optional tab completion via argcomplete
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import logging
 import sys
 import traceback
 from importlib import reload
+from importlib.util import find_spec
 
 from myproject import constants as const
 from myproject.cli import diagnostics, handlers
@@ -28,6 +30,8 @@ from myproject.cli.utils_color import (
 from myproject.cli.utils_logger import setup_logging, teardown_logger
 from myproject.settings import load_settings
 
+ARGCOMPLETE_AVAILABLE = find_spec("argcomplete") is not None
+
 
 def main(argv: list[str] | None = None) -> None:
     early_parser = apply_early_env(argv)
@@ -38,6 +42,12 @@ def main(argv: list[str] | None = None) -> None:
     reload(sett)
 
     parser = cli_parser.create_parser(early_parser)
+
+    if ARGCOMPLETE_AVAILABLE:
+        import argcomplete
+
+        argcomplete.autocomplete(parser)
+
     args = parser.parse_args(argv)
     verbose = args.verbose or args.debug
     use_color = should_use_color(args.color)
@@ -77,10 +87,7 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(const.EXIT_CANCELLED)
 
     except Exception as exc:
-        logger = logging.getLogger("myproject")
         logger.exception("Unhandled error during CLI execution")
-
-        # Always show basic error to user
         sys.stderr.write(format_error(f"Error: {exc}", use_color=use_color) + "\n")
 
         if args.debug:

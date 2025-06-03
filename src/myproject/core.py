@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+__all__ = [
+    "example_hello",
+    "process_query",
+    "sanitize_input",
+    "simulate_failure",
+]
+
+
 _QUERY_EMPTY_ERROR = "Query string cannot be empty."
 _SIMULATED_FAILURE_MSG = "Simulated processing failure triggered by input."
 
