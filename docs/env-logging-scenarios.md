@@ -13,7 +13,7 @@ foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACK
 }
 ```
 
- **Linux**:
+- **Linux**:
 
 ```bash
 unset MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
@@ -21,10 +21,14 @@ unset MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
 
 2. To verify the env. variables that are active and set for this project, you can use following commands:
 
+- **Windows:**
+
 ```powershell
 Get-ChildItem Env: | Where-Object { "$($_.Name)=$($_.Value)" -like '*MYPROJECT*' }
 Get-ChildItem Env: | Where-Object { $_.Name -like 'MYPROJECT_*' -or $_.Name -eq 'DOTENV_PATH' }
 ```
+
+- **Linux**:
 
 ```bash
 env | grep MYPROJECT
