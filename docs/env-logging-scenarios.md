@@ -8,15 +8,24 @@ This guide documents key scenarios for configuring and verifying the behavior of
 - **Windows:**
 
 ```powershell
-foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACKUP_COUNT", "DOTENV_PATH") {
-    if (Test-Path "Env:$var") { Remove-Item "Env:$var" }
+$vars = 'MYPROJECT_ENV', 'MYPROJECT_LOG_MAX_BYTES', 'MYPROJECT_LOG_BACKUP_COUNT', 'MYPROJECT_LOG_LEVEL', 'MYPROJECT_DEBUG_ENV_LOAD', 'DOTENV_PATH'
+foreach ($v in $vars) {
+    if (Test-Path "Env:$v") {
+        Write-Host "  Unsetting $v"
+        Remove-Item "Env:$v"
+    }
 }
 ```
 
 - **Linux**:
 
 ```bash
-unset MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
+for var in MYPROJECT_ENV MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT MYPROJECT_LOG_LEVEL MYPROJECT_DEBUG_ENV_LOAD DOTENV_PATH; do
+  if printenv "$var" >/dev/null; then
+    echo "  Unsetting $var"
+    unset "$var"
+  fi
+done
 ```
 
 2. To verify the env. variables that are active and set for this project, you can use following commands:
