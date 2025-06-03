@@ -3,18 +3,32 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import cast
 
 from dotenv import dotenv_values, load_dotenv
 
 import myproject.constants as const
 
 # ---------------------------------------------------------------------
-# Constants
+# Logging
 # ---------------------------------------------------------------------
 
-ROOT_DIR: Path = Path(__file__).resolve().parents[2]
-ALLOWED_ENVIRONMENTS: set[str] = {"DEV", "UAT", "PROD"}
 logger = logging.getLogger("myproject")
+
+# ---------------------------------------------------------------------
+# Constants and Accessors
+# ---------------------------------------------------------------------
+
+ALLOWED_ENVIRONMENTS: set[str] = {"DEV", "UAT", "PROD"}
+
+if "MYPROJECT_ROOT_DIR_FOR_TESTS" in os.environ:
+    ROOT_DIR = Path(os.environ["MYPROJECT_ROOT_DIR_FOR_TESTS"])
+
+
+def get_root_dir() -> Path:
+    """Dynamically return the project root directory (patchable in tests)."""
+    return cast("Path", globals().get("ROOT_DIR", Path(__file__).resolve().parents[2]))
+
 
 # ---------------------------------------------------------------------
 # Internal Helpers
@@ -63,21 +77,31 @@ def safe_int(env_var: str, default: int) -> int:
 
 def _resolve_dotenv_paths() -> list[Path]:
     """Determine prioritized .env files to load based on context."""
-    if custom := os.getenv("DOTENV_PATH"):
-        return [Path(custom)]
+    root_dir = get_root_dir()
 
+    # Priority 1: DOTENV_PATH (explicit custom)
+    if custom := os.getenv("DOTENV_PATH"):
+        custom_path = Path(custom)
+        if not custom_path.exists() and (os.getenv("MYPROJECT_DEBUG_ENV_LOAD") == "1"):
+            logger.warning(
+                "[settings] DOTENV_PATH is set to %s but the file does not exist.",
+                custom_path,
+            )
+        return [custom_path]
+
+    # Priority 5: .env.test (overrides others when in test mode)
     if is_test_mode():
-        test_env = Path.cwd() / ".env.test"
+        test_env = get_root_dir() / ".env.test"
         return [test_env] if test_env.exists() else []
 
-    env_files = [
-        ROOT_DIR / name for name in [".env.override", ".env"] if (ROOT_DIR / name).exists()
-    ]
+    # Priorities 2-4: .env.override > .env > .env.local
+    for name in [".env.override", ".env", ".env.local"]:
+        path = root_dir / name
+        if path.exists():
+            return [path]
 
-    if env_files:
-        return env_files
-
-    sample = ROOT_DIR / ".env.sample"
+    # Priority 6: fallback sample
+    sample = root_dir / ".env.sample"
     return [sample] if sample.exists() else []
 
 

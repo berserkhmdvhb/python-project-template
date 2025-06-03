@@ -4,7 +4,7 @@
         test-coverage test-coverage-xml test-cov-html test-coverage-rep test-coverage-file clean-coverage \
         check-all test-watch \
         precommit precommit-run precommit-check \
-        env-check env-debug env-clear dotenv-debug env-example \
+        env-check env-debug env-clear env-show dotenv-debug env-example \
         safety check-updates check-toml \
         build clean clean-pyc clean-all \
         publish publish-test publish-dryrun upload-coverage
@@ -55,7 +55,8 @@ help::
 	@echo ""
 	@echo "  env-check              Show Python and environment info"
 	@echo "  env-debug              Show debug-related env info"
-	@echo "  env-clear              Unset MYPROJECT_* and DOTENV_PATH environment variables (OS-independent)"
+	@echo "  env-clear              Unset MYPROJECT_* and DOTENV_PATH environment variables"
+	@echo "  env-show               Show currently set MYPROJECT_* and DOTENV_PATH variables"
 	@echo "  env-example            Show example env variable usage"
 	@echo "  dotenv-debug           Show debug info from dotenv loader"
 	@echo ""
@@ -169,7 +170,11 @@ env-debug:
 
 env-clear:
 	@echo "Clearing selected MYPROJECT_* and DOTENV_PATH environment variables..."
-	@$(PYTHON) -c "import os; [print(f'  Unsetting {v}') or os.unsetenv(v) or os.environ.pop(v, None) for v in ['MYPROJECT_ENV', 'MYPROJECT_LOG_MAX_BYTES', 'MYPROJECT_LOG_BACKUP_COUNT', 'DOTENV_PATH'] if v in os.environ]"
+	@$(PYTHON) -c "import os; vars = ['MYPROJECT_ENV', 'MYPROJECT_LOG_MAX_BYTES', 'MYPROJECT_LOG_BACKUP_COUNT', 'MYPROJECT_LOG_LEVEL', 'MYPROJECT_DEBUG_ENV_LOAD', 'DOTENV_PATH']; [print(f'  Unsetting {v}') or os.environ.pop(v, None) for v in vars if v in os.environ]"
+
+env-show:
+	@echo "Currently set MYPROJECT_* and DOTENV_PATH environment variables:"
+	@$(PYTHON) -c "import os; [print(f'  {k}={v}') for k, v in os.environ.items() if k.startswith('MYPROJECT_') or k == 'DOTENV_PATH']"
 
 env-example:
 	@echo "Example usage:"

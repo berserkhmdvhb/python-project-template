@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import logging
 import os
+import sys
 import tempfile
 from collections.abc import Generator
 from io import StringIO
@@ -18,12 +19,14 @@ from tests.utils import invoke_cli
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
+    from myproject.types import LoadSettingsFunc
+
+
 # ---------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------
 
 LOGGER_NAME: Final = "myproject"
-
 
 # ---------------------------------------------------------------------
 # Auto-clean logger before and after each test
@@ -39,25 +42,29 @@ def clean_myproject_logger() -> Generator[None, None, None]:
 
 
 # ---------------------------------------------------------------------
-# Clear relevant MYPROJECT_* environment variables
+# Clear relevant MYPROJECT_* environment variables and DOTENV_PATH
 # ---------------------------------------------------------------------
 
 
 @pytest.fixture(autouse=True)
 def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
+    """
+    Automatically clears all MYPROJECT-related env vars before each test
+    to ensure isolation and prevent contamination from outer environments.
+    """
     vars_to_clear = [
         "MYPROJECT_ENV",
         "MYPROJECT_LOG_MAX_BYTES",
         "MYPROJECT_LOG_BACKUP_COUNT",
         "MYPROJECT_LOG_LEVEL",
         "MYPROJECT_DEBUG_ENV_LOAD",
+        "DOTENV_PATH",
     ]
-    if not os.environ.get("_MYPROJECT_KEEP_DOTENV_PATH"):
-        vars_to_clear.append("DOTENV_PATH")
 
     for var in vars_to_clear:
         monkeypatch.delenv(var, raising=False)
 
+    # Ensure no debug logging unless test explicitly sets it
     monkeypatch.setenv("MYPROJECT_DEBUG_ENV_LOAD", "0")
 
 
@@ -69,19 +76,116 @@ def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
 @pytest.fixture
 def load_fresh_settings(
     monkeypatch: MonkeyPatch,
-) -> Callable[[Path | None], ModuleType]:
-    def _load(dotenv_path: Path | None = None) -> ModuleType:
+) -> LoadSettingsFunc:
+    """
+    Reload settings with test mode enabled (default pytest behavior).
+    Used in standard test environments.
+    """
+
+    def _load(
+        dotenv_path: Path | None = None,
+        root_dir: Path | None = None,
+    ) -> ModuleType:
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
+
         if dotenv_path:
             monkeypatch.setenv("DOTENV_PATH", str(dotenv_path.resolve()))
+        else:
+            monkeypatch.delenv("DOTENV_PATH", raising=False)
 
-        from myproject import settings
+        if root_dir:
+            monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(root_dir.resolve()))
+        else:
+            monkeypatch.delenv("MYPROJECT_ROOT_DIR_FOR_TESTS", raising=False)
 
-        importlib.reload(settings)
-        settings.load_settings()
-        return settings
+        import myproject.settings as sett
+
+        importlib.reload(sett)
+        sett.load_settings()
+        return sett
 
     return _load
+
+
+@pytest.fixture
+def load_fresh_settings_no_test_mode(
+    monkeypatch: MonkeyPatch,
+) -> LoadSettingsFunc:
+    """
+    Reload settings with test mode disabled (simulates real execution).
+    Use only in tests validating runtime/fallback behavior.
+    """
+
+    def _load(
+        dotenv_path: Path | None = None,
+        root_dir: Path | None = None,
+    ) -> ModuleType:
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        os.environ.pop("PYTEST_CURRENT_TEST", None)
+
+        if dotenv_path:
+            monkeypatch.setenv("DOTENV_PATH", str(dotenv_path.resolve()))
+        else:
+            monkeypatch.delenv("DOTENV_PATH", raising=False)
+
+        if root_dir:
+            monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(root_dir.resolve()))
+        else:
+            monkeypatch.delenv("MYPROJECT_ROOT_DIR_FOR_TESTS", raising=False)
+
+        import myproject.settings as sett
+
+        importlib.reload(sett)
+        sett.load_settings()
+        return sett
+
+    return _load
+
+
+# ---------------------------------------------------------------------
+# Reusable test root setup for env and path-based tests
+# ---------------------------------------------------------------------
+
+
+@pytest.fixture
+def setup_test_root(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> Callable[[list[str] | None, dict[str, str] | None], Path]:
+    """
+    Centralized fixture to:
+    - Patch get_root_dir() to return tmp_path
+    - Optionally create .env files with MYPROJECT_ENV
+    - Set env vars
+    - Reload settings and return patched root path
+    """
+
+    def _setup(env_files: list[str] | None = None, env_vars: dict[str, str] | None = None) -> Path:
+        monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
+
+        # Patch get_root_dir dynamically to return tmp_path
+        monkeypatch.setattr("myproject.settings.get_root_dir", lambda: tmp_path)
+
+        if env_vars:
+            for k, v in env_vars.items():
+                monkeypatch.setenv(k, v)
+
+        if env_files:
+            for fname in env_files:
+                (tmp_path / fname).write_text(f"MYPROJECT_ENV={Path(fname).stem.upper()}")
+
+        # Ensure settings module is removed safely
+        sys.modules.pop("myproject.settings", None)
+
+        # Re-import settings cleanly
+        import myproject.settings as sett
+
+        importlib.reload(sett)
+        sett.load_settings()
+
+        return tmp_path
+
+    return _setup
 
 
 # ---------------------------------------------------------------------

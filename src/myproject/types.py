@@ -25,3 +25,9 @@ class FakeSettingsModule(ModuleType):
         self.is_dev: Callable[[], bool] = lambda: env == "DEV"
         self.is_uat: Callable[[], bool] = lambda: env == "UAT"
         self.is_prod: Callable[[], bool] = lambda: env == "PROD"
+
+
+class LoadSettingsFunc(Protocol):
+    def __call__(
+        self, *, dotenv_path: Path | None = None, root_dir: Path | None = None
+    ) -> ModuleType: ...
