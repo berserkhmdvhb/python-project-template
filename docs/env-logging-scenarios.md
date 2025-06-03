@@ -3,7 +3,7 @@
 This guide documents key scenarios for configuring and verifying the behavior of `.env` files, logging, and environment overrides in your CLI project. It includes both PowerShell and Linux-compatible instructions. I need to make two remarks before presenting the scnearios:
 
 
-1. Pleaes note that the command `make env-clear` is equivalent to following terminal command, depending on OS:
+1. Pleaes note that the command `make env-clear` only clears variable in Python. To clear them in terminal, use following commands:
 
 - **Windows:**
 
