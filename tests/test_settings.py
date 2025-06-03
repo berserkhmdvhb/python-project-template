@@ -98,11 +98,12 @@ def test_resolve_loaded_dotenv_paths(
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(tmp_path))
 
-    import sys
     import importlib
+    import sys
 
     sys.modules.pop("myproject.settings", None)
     import myproject.settings as sett
+
     importlib.reload(sett)
 
     assert sett.resolve_loaded_dotenv_paths() == [test_env]
