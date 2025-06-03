@@ -1,9 +1,11 @@
 # Environment & Logging Scenarios
 
-This guide documents key scenarios for configuring and verifying the behavior of `.env` files, logging, and environment overrides in your CLI project. It includes both PowerShell and Linux-compatible instructions.
-Pleaes note that the command `make env-clear` is equivalent to following terminal command, depending on OS:
+This guide documents key scenarios for configuring and verifying the behavior of `.env` files, logging, and environment overrides in your CLI project. It includes both PowerShell and Linux-compatible instructions. I need to make two remarks before presenting the scnearios:
 
-1. **Windows:**
+
+1. Pleaes note that the command `make env-clear` is equivalent to following terminal command, depending on OS:
+
+- **Windows:**
 
 ```powershell
 foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACKUP_COUNT", "DOTENV_PATH") {
@@ -11,10 +13,22 @@ foreach ($var in "MYPROJECT_ENV", "MYPROJECT_LOG_MAX_BYTES", "MYPROJECT_LOG_BACK
 }
 ```
 
-2. **Linux**:
+ **Linux**:
 
 ```bash
 unset MYPROJECT_LOG_MAX_BYTES MYPROJECT_LOG_BACKUP_COUNT DOTENV_PATH
+```
+
+2. To verify the env. variables that are active and set for this project, you can use following commands:
+
+```powershell
+Get-ChildItem Env: | Where-Object { "$($_.Name)=$($_.Value)" -like '*MYPROJECT*' }
+Get-ChildItem Env: | Where-Object { $_.Name -like 'MYPROJECT_*' -or $_.Name -eq 'DOTENV_PATH' }
+```
+
+```bash
+env | grep MYPROJECT
+env | grep -E '^MYPROJECT_|^DOTENV_PATH='
 ```
 
 
