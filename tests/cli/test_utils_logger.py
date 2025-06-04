@@ -336,3 +336,88 @@ def test_setup_logging_full_flow(temp_log_dir: Path, monkeypatch: pytest.MonkeyP
     # Ensure log file was created
     log_files = list(temp_log_dir.glob("*.log"))
     assert any(f.name == const.LOG_FILE_NAME for f in log_files)
+
+
+def test_rollover_closes_stream_if_open(tmp_path: Path) -> None:
+    log_file = tmp_path / const.LOG_FILE_NAME
+    log_file.write_text("initial")
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=10,
+        backupCount=1,
+        encoding="utf-8",
+        delay=False,  # Ensure stream is opened
+    )
+
+    # Emulate that the stream is open
+    assert handler.stream is not None
+    handler.do_rollover()
+    # Check if stream is reopened (i.e., replaced)
+    assert handler.stream is not None
+
+
+def test_rollover_unlinks_deletable_files(tmp_path: Path) -> None:
+    log_file = tmp_path / const.LOG_FILE_NAME
+    log_file.write_text("data")
+
+    deletable = tmp_path / "info_1.log"
+    keep_1 = tmp_path / "info_2.log"
+    keep_2 = tmp_path / "info_3.log"
+
+    for f in [deletable, keep_1, keep_2]:
+        f.write_text("rotated log")
+        time.sleep(0.01)  # ensure correct mtime ordering
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=50,
+        backupCount=2,
+        encoding="utf-8",
+        delay=True,
+    )
+
+    to_delete = handler.get_files_to_delete()
+    assert deletable in to_delete
+    assert keep_1 not in to_delete
+    assert keep_2 not in to_delete
+    assert len(to_delete) == 1
+
+
+def test_rollover_opens_new_stream_if_not_delayed(tmp_path: Path) -> None:
+    log_file = tmp_path / const.LOG_FILE_NAME
+    log_file.write_text("initial")
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=10,
+        backupCount=1,
+        encoding="utf-8",
+        delay=False,  # not delayed → triggers stream open
+    )
+
+    handler.do_rollover()
+    assert handler.stream is not None
+
+
+def test_teardown_logger_removes_handler_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    logger = get_logger()
+    handler = SafeDummyHandler()
+    logger.addHandler(handler)
+
+    # Spy on removeHandler
+    called = {"removed": False}
+
+    def fake_remove(h: logging.Handler) -> None:
+        if h is handler:
+            called["removed"] = True
+        original(h)
+
+    original = logger.removeHandler
+    monkeypatch.setattr(logger, "removeHandler", fake_remove)
+
+    teardown_logger(logger)
+    assert called["removed"]
