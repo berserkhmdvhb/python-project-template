@@ -32,3 +32,12 @@ class LoadSettingsFunc(Protocol):
     def __call__(
         self, *, dotenv_path: Path | None = None, root_dir: Path | None = None
     ) -> ModuleType: ...
+
+
+class TestRootSetup(Protocol):
+    def __call__(
+        self,
+        *,
+        env_files: list[str] | None = None,
+        env_vars: dict[str, str] | None = None,
+    ) -> Path: ...

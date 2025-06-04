@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import importlib
 import logging
 import os
-from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -10,17 +10,15 @@ from typing import TYPE_CHECKING
 import pytest
 
 import myproject.settings as sett
-from myproject.cli.utils_logger import LOGGER_NAME, teardown_logger
 from myproject.constants import DEFAULT_LOG_ROOT, ENV_ENVIRONMENT, ENV_LOG_LEVEL
 
 if TYPE_CHECKING:
-    from myproject.types import LoadSettingsFunc
+    from myproject.types import LoadSettingsFunc, TestRootSetup
 
 MAX_BYTES_TEST = 2048
 BACKUP_COUNT_TEST = 7
 DOTENV_MAX_BYTES = 1111
 DOTENV_BACKUP_COUNT = 3
-
 
 # ---------------------------------------------------------------------
 # Unit-level Tests
@@ -88,26 +86,26 @@ def test_log_config(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_resolve_loaded_dotenv_paths(
-    setup_test_root: Callable[[], Path], monkeypatch: pytest.MonkeyPatch
+    setup_test_root: TestRootSetup,
+    monkeypatch: pytest.MonkeyPatch,
+    debug_logger: logging.Logger,
+    log_stream: StringIO,
 ) -> None:
+    _ = debug_logger
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy::test")
-
-    tmp_path = setup_test_root()
-    test_env = tmp_path / ".env.test"
-    test_env.write_text("MYPROJECT_ENV=UAT\n")
-
+    tmp_path = setup_test_root(env_files=[".env.test"])
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(tmp_path))
+    import myproject.settings as sett_module
 
-    import importlib
-    import sys
+    importlib.reload(sett_module)
+    test_env = tmp_path / ".env.test"
+    assert sett_module.resolve_loaded_dotenv_paths() == [test_env]
+    sett_module.print_dotenv_debug()
 
-    sys.modules.pop("myproject.settings", None)
-    import myproject.settings as sett
-
-    importlib.reload(sett)
-
-    assert sett.resolve_loaded_dotenv_paths() == [test_env]
+    output = log_stream.getvalue()
+    assert "Selected .env file" in output
+    assert ".env.test" in output
 
 
 def test_env_sample_fallback(
@@ -126,34 +124,18 @@ def test_env_sample_fallback(
     assert settings.resolve_loaded_dotenv_paths() == [expected_path]
 
 
-def test_no_dotenv_file(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_no_dotenv_file(
+    monkeypatch: pytest.MonkeyPatch,
+    debug_logger: logging.Logger,
+    log_stream: StringIO,
+) -> None:
+    _ = debug_logger
     monkeypatch.setattr(sett, "_resolve_dotenv_paths", list)
     result = sett.load_settings(verbose=True)
     assert result == []
-
-
-def test_print_dotenv_debug_valid(
-    setup_test_root: Callable[[], Path],
-    log_stream: StringIO,
-    monkeypatch: pytest.MonkeyPatch,
-    load_fresh_settings: LoadSettingsFunc,
-) -> None:
-    tmp_path = setup_test_root()
-    dotenv = tmp_path / ".env"
-    dotenv.write_text("MYPROJECT_ENV=DEV\nFOO=bar\n")
-    monkeypatch.setattr(sett, "_resolve_dotenv_paths", lambda: [dotenv])
-    settings = load_fresh_settings(dotenv_path=dotenv)
-    teardown_logger()
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(log_stream)
-    handler.setLevel(logging.INFO)
-    logger.handlers.clear()
-    logger.addHandler(handler)
-    settings.print_dotenv_debug()
     output = log_stream.getvalue()
-    assert "Selected .env file" in output
-    assert "FOO=bar" in output
+    assert "No .env file loaded" in output
+    assert "falling back to system env" in output
 
 
 # ---------------------------------------------------------------------
@@ -274,3 +256,90 @@ def test_is_not_test_mode(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_environment_empty_string(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(ENV_ENVIRONMENT, "")
     assert sett.get_environment() == "DEV"
+
+
+# ---------------------------------------------------------------------
+# Tests for dotenv debugging diagnostics
+# ---------------------------------------------------------------------
+
+
+def test_dotenv_path_missing_warns(
+    monkeypatch: pytest.MonkeyPatch,
+    debug_logger: logging.Logger,
+    log_stream: StringIO,
+) -> None:
+    _ = debug_logger
+    monkeypatch.setenv("DOTENV_PATH", "/nonexistent/.env")
+    monkeypatch.setenv("MYPROJECT_DEBUG_ENV_LOAD", "1")
+    sett.load_settings()
+
+    output = log_stream.getvalue()
+    assert "DOTENV_PATH is set to" in output
+    assert ".env" in output
+
+
+def test_dotenv_debug_no_files(
+    monkeypatch: pytest.MonkeyPatch,
+    log_stream: StringIO,
+) -> None:
+    monkeypatch.setattr(sett, "_resolve_dotenv_paths", list)
+    sett.print_dotenv_debug()
+
+    output = log_stream.getvalue()
+    assert "No .env file found or resolved" in output
+    assert "may only be coming from the OS" in output
+
+
+def test_dotenv_debug_empty_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    log_stream: StringIO,
+) -> None:
+    empty_dotenv = tmp_path / ".env"
+    empty_dotenv.write_text("")
+
+    monkeypatch.setattr(sett, "_resolve_dotenv_paths", lambda: [empty_dotenv])
+    sett.print_dotenv_debug()
+
+    output = log_stream.getvalue()
+    assert "file exists but is empty or contains no key-value pairs" in output
+
+
+def test_dotenv_debug_raises(
+    monkeypatch: pytest.MonkeyPatch,
+    debug_logger: logging.Logger,
+    log_stream: StringIO,
+) -> None:
+    _ = debug_logger
+    fake_path = Path("/fake/path/.env")
+    monkeypatch.setattr(sett, "_resolve_dotenv_paths", lambda: [fake_path])
+    monkeypatch.setattr(
+        sett,
+        "dotenv_values",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(Exception("boom")),
+    )
+
+    sett.print_dotenv_debug()
+
+    output = log_stream.getvalue()
+    assert "Failed to read .env file" in output
+    assert "Exception" in output or "boom" in output
+
+
+def test_print_dotenv_debug_valid(
+    setup_test_root: TestRootSetup,
+    load_fresh_settings: LoadSettingsFunc,
+    debug_logger: logging.Logger,
+    log_stream: StringIO,
+) -> None:
+    _ = debug_logger
+    tmp_path = setup_test_root(env_files=[".env"])
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(dotenv.read_text() + "FOO=bar\n")
+
+    settings = load_fresh_settings(dotenv_path=dotenv)
+    settings.print_dotenv_debug()
+
+    output = log_stream.getvalue()
+    assert "Selected .env file" in output
+    assert "FOO=bar" in output

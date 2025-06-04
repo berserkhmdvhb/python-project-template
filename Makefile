@@ -1,6 +1,6 @@
 .PHONY: all help install develop \
         fmt fmt-check lint-ruff type-check lint-all lint-all-check \
-        test test-file test-fast testing \
+        test test-file test-file-function test-fast testing \
         test-coverage test-coverage-xml test-cov-html test-coverage-rep test-coverage-file clean-coverage \
         check-all test-watch \
         precommit precommit-run precommit-check \
@@ -37,6 +37,7 @@ help::
 	@echo ""
 	@echo "  test                   Run all tests using Pytest"
 	@echo "  test-file              Run a single test file or keyword with FILE=... (e.g. make test-file FILE=tests/cli/test_main.py)"
+	@echo "  test-file-function     Run a specific test function with FILE=... FUNC=... (e.g. make test-file-function FILE=tests/test_settings.py FUNC=test_no_dotenv_file)"
 	@echo "  test-fast              Run only last failed tests"
 	@echo ""
 	@echo "  test-coverage          Run tests and show terminal coverage summary"
@@ -114,6 +115,10 @@ test:
 test-file:
 	@$(PYTHON) -c "import sys; f = '$(FILE)'; sys.exit(0) if f else (print('Usage: make test-file FILE=path/to/file.py'), sys.exit(1))"
 	$(PYTHON) -m pytest $(FILE) -v
+
+test-file-function:
+	@$(PYTHON) -c "import sys; f = '$(FILE)'; func = '$(FUNC)'; sys.exit(0) if f and func else (print('Usage: make test-file-function FILE=path/to/file.py FUNC=function_name'), sys.exit(1))"
+	$(PYTHON) -m pytest $(FILE)::$(FUNC) -v
 
 test-fast:
 	$(PYTHON) -m pytest --lf -x -v

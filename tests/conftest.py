@@ -19,7 +19,7 @@ from tests.utils import invoke_cli
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
-    from myproject.types import LoadSettingsFunc
+    from myproject.types import LoadSettingsFunc, TestRootSetup
 
 
 # ---------------------------------------------------------------------
@@ -151,7 +151,7 @@ def load_fresh_settings_no_test_mode(
 def setup_test_root(
     tmp_path: Path,
     monkeypatch: MonkeyPatch,
-) -> Callable[[list[str] | None, dict[str, str] | None], Path]:
+) -> TestRootSetup:
     """
     Centralized fixture to:
     - Patch get_root_dir() to return tmp_path
@@ -160,7 +160,11 @@ def setup_test_root(
     - Reload settings and return patched root path
     """
 
-    def _setup(env_files: list[str] | None = None, env_vars: dict[str, str] | None = None) -> Path:
+    def _setup(
+        *,
+        env_files: list[str] | None = None,
+        env_vars: dict[str, str] | None = None,
+    ) -> Path:
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
 
         # Patch get_root_dir dynamically to return tmp_path
@@ -174,10 +178,8 @@ def setup_test_root(
             for fname in env_files:
                 (tmp_path / fname).write_text(f"MYPROJECT_ENV={Path(fname).stem.upper()}")
 
-        # Ensure settings module is removed safely
         sys.modules.pop("myproject.settings", None)
 
-        # Re-import settings cleanly
         import myproject.settings as sett
 
         importlib.reload(sett)
@@ -262,6 +264,31 @@ def log_stream() -> Generator[StringIO, None, None]:
 
     logger.removeHandler(handler)
     handler.close()
+
+
+# ---------------------------------------------------------------------
+# Debug-level logger fixture (for dotenv debug / diagnostics)
+# ---------------------------------------------------------------------
+
+
+@pytest.fixture
+def debug_logger(log_stream: StringIO) -> logging.Logger:
+    """
+    Sets up a logger with DEBUG level and attaches log_stream.
+    Useful for capturing diagnostic output in dotenv-related tests.
+    """
+    teardown_logger()
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.DEBUG)
+    logger.handlers.clear()
+
+    handler = logging.StreamHandler(log_stream)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    return logger
 
 
 # ---------------------------------------------------------------------
