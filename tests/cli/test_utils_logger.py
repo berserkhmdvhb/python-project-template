@@ -441,3 +441,38 @@ def test_rollover_handles_unlink_oserror(tmp_path: Path, monkeypatch: pytest.Mon
 
     monkeypatch.setattr(Path, "unlink", lambda _: (_ for _ in ()).throw(OSError("simulated")))
     handler.do_rollover()
+
+
+def test_rollover_unlinks_old_rotated_file(tmp_path: Path) -> None:
+    log_file = tmp_path / "base.log"
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=1,
+        backupCount=1,
+        encoding="utf-8",
+        delay=False,
+    )
+
+    # First log → base.log
+    handler.emit(logging.LogRecord("myproject", logging.DEBUG, "", 0, "A" * 100, (), None))
+    handler.do_rollover()
+    first_backup = tmp_path / "base_1.log"
+    assert first_backup.exists(), "base_1.log was not created after first rollover"
+    first_backup.unlink()
+    handler.emit(logging.LogRecord("myproject", logging.DEBUG, "", 0, "B" * 100, (), None))
+    handler.do_rollover()
+
+
+def test_teardown_logger_executes_remove_handler() -> None:
+    logger = get_logger()
+    handler = StreamHandler()
+    logger.addHandler(handler)
+
+    assert handler in logger.handlers
+
+    teardown_logger(logger)
+
+    # If this line executed, the handler will be gone
+    assert handler not in logger.handlers
