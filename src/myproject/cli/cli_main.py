@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> None:
             import argcomplete
 
             argcomplete.autocomplete(parser)
-        except Exception as exc:  # noqa: BLE001  # argcomplete may fail in unsupported shells
+        except (ImportError, AttributeError) as exc:
             logging.getLogger("myproject").debug("argcomplete setup failed: %s", exc)
 
     args = parser.parse_args(argv)
