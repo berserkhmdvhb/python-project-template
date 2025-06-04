@@ -3,11 +3,12 @@ from __future__ import annotations
 import importlib
 import logging
 import time
+from collections.abc import Callable
 from io import StringIO
 from logging import StreamHandler
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import myproject.constants as const
 from myproject.cli.utils_logger import (

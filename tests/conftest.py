@@ -5,11 +5,11 @@ import logging
 import os
 import sys
 import tempfile
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from io import StringIO
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Callable, Final
+from typing import TYPE_CHECKING, Final
 
 import pytest
 

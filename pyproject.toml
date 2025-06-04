@@ -47,7 +47,7 @@ dev = [
 myproject = "myproject.__main__:main"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0,<70"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -76,7 +76,7 @@ pretty = true
 # ----------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 fix = true
 show-fixes = true
 exclude = ["tests/manual/*"]
@@ -91,6 +91,7 @@ ignore = [
   "COM812"   # avoid conflict with Ruff formatter
 ]
 per-file-ignores = {"tests/*" = ["S101", "S603"], "src/myproject/cli/utils_color.py" = ["T201"]}
+
 
 # ----------------------------
 # Pytest Configuration

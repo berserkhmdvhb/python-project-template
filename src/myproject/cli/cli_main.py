@@ -30,6 +30,7 @@ from myproject.cli.utils_color import (
 from myproject.cli.utils_logger import setup_logging, teardown_logger
 from myproject.settings import load_settings
 
+# Detect argcomplete support (optional dependency)
 ARGCOMPLETE_AVAILABLE = find_spec("argcomplete") is not None
 
 
@@ -44,9 +45,12 @@ def main(argv: list[str] | None = None) -> None:
     parser = cli_parser.create_parser(early_parser)
 
     if ARGCOMPLETE_AVAILABLE:
-        import argcomplete
+        try:
+            import argcomplete
 
-        argcomplete.autocomplete(parser)
+            argcomplete.autocomplete(parser)
+        except Exception as exc:  # noqa: BLE001  # argcomplete may fail in unsupported shells
+            logging.getLogger("myproject").debug("argcomplete setup failed: %s", exc)
 
     args = parser.parse_args(argv)
     verbose = args.verbose or args.debug
