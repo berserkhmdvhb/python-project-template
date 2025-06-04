@@ -428,13 +428,11 @@ def test_rollover_handles_unlink_oserror(tmp_path: Path, monkeypatch: pytest.Mon
     log_file.write_text("main log")
 
     deletable = tmp_path / "info_1.log"
-    deletable.write_text("to delete")
-
     handler = CustomRotatingFileHandler(
         filename=str(log_file),
         mode="a",
         maxBytes=1,
-        backupCount=0,
+        backupCount=1,
         encoding="utf-8",
         delay=True,
     )
@@ -446,10 +444,11 @@ def test_rollover_handles_unlink_oserror(tmp_path: Path, monkeypatch: pytest.Mon
 
     def custom_unlink(self: Path) -> None:
         if self.name == "info_1.log":
-            error_msg = "simulated"
-            raise OSError(error_msg)
+            msg = "simulated"
+            raise OSError(msg)
 
     monkeypatch.setattr(Path, "unlink", custom_unlink)
+
     handler.do_rollover()
 
 
@@ -485,4 +484,23 @@ def test_teardown_logger_executes_remove_handler() -> None:
     teardown_logger(logger)
 
     # If this line executed, the handler will be gone
+    assert handler not in logger.handlers
+
+
+def test_teardown_logger_finally_removes() -> None:
+    logger = get_logger()
+
+    class FlushError(Exception):
+        """Custom error to simulate flush failure."""
+
+    class FaultyHandler(logging.Handler):
+        def flush(self) -> None:
+            raise FlushError(flush_failed_msg)
+
+    flush_failed_msg = "simulated flush failure"
+    handler = FaultyHandler()
+    logger.addHandler(handler)
+
+    teardown_logger(logger)
+
     assert handler not in logger.handlers
