@@ -433,13 +433,23 @@ def test_rollover_handles_unlink_oserror(tmp_path: Path, monkeypatch: pytest.Mon
     handler = CustomRotatingFileHandler(
         filename=str(log_file),
         mode="a",
-        maxBytes=50,
+        maxBytes=1,
         backupCount=0,
         encoding="utf-8",
         delay=True,
     )
 
-    monkeypatch.setattr(Path, "unlink", lambda _: (_ for _ in ()).throw(OSError("simulated")))
+    def mock_get_files_to_delete() -> list[Path]:
+        return [deletable]
+
+    monkeypatch.setattr(handler, "get_files_to_delete", mock_get_files_to_delete)
+
+    def custom_unlink(self: Path) -> None:
+        if self.name == "info_1.log":
+            error_msg = "simulated"
+            raise OSError(error_msg)
+
+    monkeypatch.setattr(Path, "unlink", custom_unlink)
     handler.do_rollover()
 
 
