@@ -219,7 +219,7 @@ python -m myproject --help
 
 * GitHub Actions CI pipeline runs on every push and PR:
 
-  * Python 3.9 → 3.13
+  * Python 3.10 → 3.13
   * Lint (Ruff), type-check (MyPy), test (Pytest)
   * Uploads coverage to Coveralls
 
