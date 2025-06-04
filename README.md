@@ -171,18 +171,19 @@ python -m myproject --help
 
 ### 🔧 Makefile Commands
 
-| Command                            | Description                                                 |
-| ---------------------------------- | ----------------------------------------------------------- |
-| `make install`                     | Install the package in editable mode                        |
-| `make develop`                     | Install with `[dev]` extras (for development)               |
-| `make fmt`                         | Format code using Ruff                                      |
+| Command                             | Description                                                 |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `make install`                      | Install the package in editable mode                        |
+| `make develop`                      | Install with `[dev]` extras (for development)               |
+| `make fmt`                          | Format code using Ruff                                      |
 | `make fmt-check`                   | Check formatting without making changes                     |
 | `make lint-ruff`                   | Run Ruff linter on codebase                                 |
-| `make type-check`                 | Run MyPy static type checks                                 |
+| `make type-check`                  | Run MyPy static type checks                                 |
 | `make lint-all`                    | Run format, lint, and type check                            |
 | `make lint-all-check`             | Dry run of all checks                                       |
-| `make test`                        | Run all tests using Pytest                                  |
+| `make test`                         | Run all tests using Pytest                                  |
 | `make test-file FILE=...`          | Run a specific test file or pattern                         |
+| `make test-file-function FILE=... FUNC=...` | Run a specific test function in a file           |
 | `make test-fast`                   | Run only last failed tests                                  |
 | `make test-coverage`               | Run tests and show coverage in terminal                     |
 | `make test-coverage-xml`           | Generate XML coverage report (for CI tools)                 |
