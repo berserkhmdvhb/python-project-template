@@ -6,7 +6,8 @@ import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import IO
+from types import ModuleType
+from typing import IO, NoReturn
 
 
 def invoke_cli(
@@ -58,3 +59,14 @@ class SafeDummyHandler(logging.StreamHandler):  # type: ignore[type-arg]
 
     def close(self) -> None:
         pass
+
+
+class ArgcompleteStub(ModuleType):
+    def __init__(self) -> None:
+        super().__init__("argcomplete")
+        self.autocomplete = self._autocomplete
+
+    @staticmethod
+    def _autocomplete(*_args: object, **_kwargs: object) -> NoReturn:
+        error_msg = "Simulated autocomplete failure"
+        raise RuntimeError(error_msg)

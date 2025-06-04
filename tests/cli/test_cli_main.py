@@ -1,7 +1,10 @@
+import importlib
 import json
+import logging
 import subprocess
 import sys
 from collections.abc import Callable
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,6 +13,7 @@ from _pytest.monkeypatch import MonkeyPatch
 
 import myproject.constants as const
 from myproject.cli import cli_main
+from tests.utils import ArgcompleteStub
 
 
 def test_help(run_cli: Callable[..., tuple[str, str, int]]) -> None:
@@ -319,3 +323,16 @@ def test_debug_prints_traceback(
     # Traceback and exception details are printed to stderr
     assert "traceback" in captured.err.lower()
     assert "runtimeerror: boom" in captured.err.lower()
+
+    def test_argcomplete_autocomplete_failure(
+        monkeypatch: pytest.MonkeyPatch,
+        log_stream: StringIO,
+        debug_logger: logging.Logger,
+    ) -> None:
+        _ = debug_logger  # Ensure logging output is captured
+        # Patch the fake argcomplete module
+        monkeypatch.setitem(sys.modules, "argcomplete", ArgcompleteStub())
+        monkeypatch.setattr(cli_main, "ARGCOMPLETE_AVAILABLE", True)
+        importlib.reload(cli_main)
+        logs = log_stream.getvalue()
+        assert "argcomplete setup failed: Simulated autocomplete failure" in logs
