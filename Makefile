@@ -70,7 +70,7 @@ help::
 	@echo "  clean-all              Remove all build, test, and log artifacts"
 	@echo ""
 	@echo "  publish-test           Upload to TestPyPI"
-	@echo "  publish-dryrun         Validate and simulate TestPyPI upload"
+	@echo "  publish-dryrun         Validate and simulate TestPyPI upload (dry run)"
 	@echo "  publish                Upload to PyPI"
 	@echo "  upload-coverage        Upload coverage report to Coveralls"
 
