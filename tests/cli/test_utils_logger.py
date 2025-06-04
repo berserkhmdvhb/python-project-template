@@ -12,7 +12,9 @@ from typing import TYPE_CHECKING
 
 import myproject.constants as const
 from myproject.cli.utils_logger import (
+    CustomRotatingFileHandler,
     EnvironmentFilter,
+    get_default_formatter,
     setup_logging,
     teardown_logger,
 )
@@ -214,3 +216,121 @@ def test_teardown_logger_covers_remove_handler(monkeypatch: MonkeyPatch) -> None
 
     teardown_logger(logger)
     assert called["removed"]
+
+
+def test_rotation_filename_variants() -> None:
+    handler = CustomRotatingFileHandler("dummy.log")
+
+    assert handler.rotation_filename("info.log") == "info.log"
+    assert handler.rotation_filename("info.log.1") == "info_1.log"
+    assert handler.rotation_filename("randomfile.txt") == "randomfile.txt"
+
+
+def test_get_files_to_delete_returns_expected(patched_settings: Path) -> None:
+    log_file = patched_settings / const.LOG_FILE_NAME
+    log_file.touch()
+
+    rotated = [
+        patched_settings / "info_1.log",
+        patched_settings / "info_2.log",
+        patched_settings / "info_3.log",
+    ]
+    for f in rotated:
+        f.write_text("log content")
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=50,
+        backupCount=2,
+        encoding="utf-8",
+        delay=True,
+    )
+
+    to_delete = handler.get_files_to_delete()
+    assert all(f.exists() for f in to_delete)
+    assert len(to_delete) == 1
+    assert to_delete[0].name == "info_1.log"
+
+
+def test_do_rollover_custom_pattern(patched_settings: Path) -> None:
+    log_path = patched_settings / const.LOG_FILE_NAME
+    log_path.write_text("first log")
+
+    rotated = [
+        patched_settings / "info_1.log",
+        patched_settings / "info_2.log",
+    ]
+    for f in rotated:
+        f.write_text("old log")
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_path),
+        mode="a",
+        maxBytes=50,
+        backupCount=2,
+        encoding="utf-8",
+        delay=True,
+    )
+    handler.do_rollover()
+
+    existing = {f.name for f in patched_settings.glob("*.log")}
+    assert "info_2.log" in existing or "info_3.log" not in existing
+    assert "info_1.log" in existing
+
+
+def test_teardown_logger_explicit_removal(monkeypatch: pytest.MonkeyPatch) -> None:
+    logger = logging.getLogger("myproject")
+    removed = {"status": False}
+
+    class DummyHandler(logging.Handler):
+        def flush(self) -> None: ...
+        def close(self) -> None: ...
+
+    handler = DummyHandler()
+
+    def fake_remove(h: logging.Handler) -> None:
+        if h is handler:
+            removed["status"] = True
+        original_remove(h)
+
+    logger.addHandler(handler)
+    original_remove = logger.removeHandler
+    monkeypatch.setattr(logger, "removeHandler", fake_remove)
+
+    teardown_logger(logger)
+    assert removed["status"]
+
+
+def test_setup_logging_full_flow(temp_log_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "100")
+    monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "2")
+    monkeypatch.setenv("MYPROJECT_ENV", "DEV")
+
+    handlers = setup_logging(log_dir=temp_log_dir, reset=True, return_handlers=True)
+    assert handlers is not None
+
+    # Check that formatter is attached correctly
+    assert any(
+        isinstance(getattr(h, "formatter", None), type(get_default_formatter())) for h in handlers
+    )
+
+    # Manually verify that EnvironmentFilter sets `record.env`
+    record = logging.LogRecord(
+        name="myproject",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=123,
+        msg="Log test",
+        args=(),
+        exc_info=None,
+    )
+    filt = EnvironmentFilter()
+    result = filt.filter(record)
+    assert result
+    assert hasattr(record, "env")
+    assert record.env == "DEV"
+
+    # Ensure log file was created
+    log_files = list(temp_log_dir.glob("*.log"))
+    assert any(f.name == const.LOG_FILE_NAME for f in log_files)

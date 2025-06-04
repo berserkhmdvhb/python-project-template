@@ -48,6 +48,8 @@ class CustomRotatingFileHandler(RotatingFileHandler):
                 src = Path(self.rotation_filename(f"{self.baseFilename}.{i}"))
                 dst = Path(self.rotation_filename(f"{self.baseFilename}.{i + 1}"))
                 if src.exists():
+                    if dst.exists():
+                        dst.unlink()
                     src.rename(dst)
 
             rollover_path = Path(self.rotation_filename(f"{self.baseFilename}.1"))
