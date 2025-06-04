@@ -421,3 +421,23 @@ def test_teardown_logger_removes_handler_line(monkeypatch: pytest.MonkeyPatch) -
 
     teardown_logger(logger)
     assert called["removed"]
+
+
+def test_rollover_handles_unlink_oserror(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    log_file = tmp_path / const.LOG_FILE_NAME
+    log_file.write_text("main log")
+
+    deletable = tmp_path / "info_1.log"
+    deletable.write_text("to delete")
+
+    handler = CustomRotatingFileHandler(
+        filename=str(log_file),
+        mode="a",
+        maxBytes=50,
+        backupCount=0,
+        encoding="utf-8",
+        delay=True,
+    )
+
+    monkeypatch.setattr(Path, "unlink", lambda _: (_ for _ in ()).throw(OSError("simulated")))
+    handler.do_rollover()
