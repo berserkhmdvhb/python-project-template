@@ -237,6 +237,7 @@ def test_get_files_to_delete_returns_expected(patched_settings: Path) -> None:
     ]
     for f in rotated:
         f.write_text("log content")
+        time.sleep(0.01)
 
     handler = CustomRotatingFileHandler(
         filename=str(log_file),
@@ -250,7 +251,8 @@ def test_get_files_to_delete_returns_expected(patched_settings: Path) -> None:
     to_delete = handler.get_files_to_delete()
     assert all(f.exists() for f in to_delete)
     assert len(to_delete) == 1
-    assert to_delete[0].name == "info_1.log"
+    oldest = min(rotated, key=lambda f: f.stat().st_mtime)
+    assert to_delete[0] == oldest
 
 
 def test_do_rollover_custom_pattern(patched_settings: Path) -> None:
