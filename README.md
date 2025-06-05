@@ -341,7 +341,7 @@ The `docs/` directory contains detailed internal documentation covering design d
 * Start from a best-practice Python layout.
 * Deploy a configurable CLI + reusable core lib.
 * Implement structured logging per environment.
-* Automate test, build, coverage, packagin, and release workflows
+* Automate test, build, coverage, packaging, and release workflows
 * Maintain 100% test coverage and strict lint.
 * Simulate realistic development lifecycle
 
