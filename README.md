@@ -2,8 +2,8 @@
 
 [![License](https://img.shields.io/github/license/berserkhmdvhb/python-project-template)](LICENSE)
 [![Tests](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml/badge.svg)](https://github.com/berserkhmdvhb/python-project-template/actions/workflows/tests.yml)
-[![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main&nocache=1)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
-
+[![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
+[![Coverage Status_PNG](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.png?branch=master)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=master)
 
 A **modern and reusable Python project template** for building libraries, CLIs, or hybrid packages — designed with best practices, rich tooling, and robust environment-based behavior.
 
