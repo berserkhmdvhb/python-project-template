@@ -7,11 +7,13 @@ This document describes the internal architecture of the `myproject` CLI, design
 
 - [🧭 Overview](#-overview)
 - [🗂️ File Structure](#-file-structure)
-- [🚀 CLI Entry Flow](#-cli-entry-flow)
-- [🧩 Argument Parsing (`parser.py`)](#-argument-parsing-parserpy)
-- [🛣️ Handler Routing (`handlers.py`)](#-handler-routing-handlerspy)
-- [🎨 Output Styling (`color_utils.py`)](#-output-styling-color_utilspy)
-- [📝 Logging Setup (`logger_utils.py`)](#-logging-setup-logger_utilspy)
+- [📊 Diagram](#diagram)
+- [🔧 CLI Modules](#cli-modules)
+  - [Entry Flow](#entry-flow)
+  - [🧩 Argument Parsing (`parser.py`)](#-argument-parsing-parserpy)
+  - [🛣️ Handler Routing (`handlers.py`)](#-handler-routing-handlerspy)
+  - [🎨 Output Styling (`color_utils.py`)](#-output-styling-color_utilspy)
+  - [📝 Logging Setup (`logger_utils.py`)](#-logging-setup-logger_utilspy)
 - [🧪 Testing the CLI](#-testing-the-cli)
 - [✅ Summary](#-summary)
 ---
@@ -49,24 +51,24 @@ src/myproject/
 
 ```mermaid
 flowchart TD
-    A[__main__.py<br><small>Module entry point</small>] --> B[main.py<br><small>Delegates to cli_main</small>]
-    B --> C[cli_main.py<br><small>Coordinates parsing, settings, logging</small>]
+    A["__main__.py<br/><small style='color:#eee;'>Module entry point</small>"] --> B["main.py<br/><small style='color:#eee;'>Delegates to cli_main</small>"]
+    B --> C["cli_main.py<br/><small style='color:#eee;'>Coordinates parsing, settings, logging</small>"]
 
-    C --> D[parser.py<br><small>Argument parsing</small>]
-    C --> E[logger_utils.py<br><small>Set up logging</small>]
-    C --> F[handlers.py<br><small>Route to core logic</small>]
-    C --> G[color_utils.py<br><small>Styled CLI output</small>]
+    C --> D["parser.py<br/><small style='color:#eee;'>Argument parsing</small>"]
+    C --> E["logger_utils.py<br/><small style='color:#eee;'>Set up logging</small>"]
+    C --> F["handlers.py<br/><small style='color:#eee;'>Route to core logic</small>"]
+    C --> G["color_utils.py<br/><small style='color:#eee;'>Styled CLI output</small>"]
 
-    F --> H[core.py<br><small>Business logic</small>]
+    F --> H["core.py<br/><small style='color:#eee;'>Business logic</small>"]
 
-    style A fill:#f3f4f6,stroke:#333,stroke-width:1px
-    style B fill:#f3f4f6,stroke:#333,stroke-width:1px
-    style C fill:#dbeafe,stroke:#1e40af,stroke-width:2px
-    style D fill:#e0f2fe
-    style E fill:#e0f2fe
-    style F fill:#e0f2fe
-    style G fill:#e0f2fe
-    style H fill:#bbf7d0
+    style A fill:#1e293b,stroke:#64748b,stroke-width:1px,color:#fff
+    style B fill:#1e293b,stroke:#64748b,stroke-width:1px,color:#fff
+    style C fill:#334155,stroke:#93c5fd,stroke-width:2px,color:#fff
+    style D fill:#0f172a,color:#fff
+    style E fill:#0f172a,color:#fff
+    style F fill:#0f172a,color:#fff
+    style G fill:#0f172a,color:#fff
+    style H fill:#064e3b,color:#fff
 ```
 
 ---
