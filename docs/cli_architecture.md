@@ -45,9 +45,9 @@ src/myproject/
 
 ---
 
-## 🚀 CLI Entry Flow
-
-### 1. **`__main__.py`**
+## CLI Modules
+### Entry Flow
+#### 1. **`__main__.py`**
 
 The CLI is executable via `python -m myproject`, which delegates to `cli.main()`.
 
@@ -56,7 +56,7 @@ from myproject.cli import main
 main()
 ```
 
-### 2. **`cli/main.py`**
+#### 2. **`cli/main.py`**
 
 This module initializes the CLI by calling `cli_main.main(argv)` and ensures the environment is loaded early.
 
@@ -66,13 +66,13 @@ def main(argv: list[str] | None = None) -> None:
 ```
 
 
-### 3. 🧠 **`cli/cli_main.py`**
+#### 3. 🧠 **`cli/cli_main.py`**
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 * Central CLI logic hub. Coordinates settings, argument parsing, logging, and routing.
 
-### 🔹 Responsibilities
+**🔹 Responsibilities**
 
 * Apply early parsing to read `--env` or `--dotenv-path`
 * Load and validate settings via `settings.py`
@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> None:
 * Format and return output (JSON or styled text)
 * Exit with appropriate code
 
-### 🔹 Key Behavior
+**🔹 Key Behavior**
 
 * Supports `--verbose`, `--debug`, `--color`, and `--format`
 * Logs are suppressed unless `--verbose` or `--debug` is used
@@ -93,21 +93,21 @@ def main(argv: list[str] | None = None) -> None:
 
 ---
 
-## 🧩 Argument Parsing (`parser.py`)
+### 🧩 Argument Parsing (`parser.py`)
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 * Provides argument parsing logic while supporting **early environment injection**.
 
-### 🔹 Components
+**🔹 Components**
 
-1. `apply_early_env(argv)`
+1. #### `apply_early_env(argv)`
 
    * Scans `argv` for `--env` or `--dotenv-path`
    * Pre-loads settings using `settings.load_settings()`
    * Returns minimal parser output with just early values
 
-2. `create_parser(early: Namespace)`
+2. #### `create_parser(early: Namespace)`
 
    * Creates the full `argparse.ArgumentParser`
    * Includes logic for:
@@ -116,25 +116,25 @@ def main(argv: list[str] | None = None) -> None:
      * Output formatting flags: `--color`, `--format`, `--verbose`, `--debug`
      * Exit-related flags: `--help`, `--version`
 
-### 🔹 Extras
+**🔹 Extras**
 
 * Replaces `error()` and `exit()` with custom logic to support better exit codes and logging
 * Accepts pre-parsed early settings to inject default values
 ---
 
-## 🛣️ Handler Routing (`handlers.py`)
+### 🛣️ Handler Routing (`handlers.py`)
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 * Routes parsed CLI arguments to core logic or mock simulations
 
-### 🔹 Responsibilities
+**🔹 Responsibilities**
 
 * Calls `core.process_query()` if in normal mode
 * Returns mocked data if `--env` is `test` or config is mocked
 * Returns results in a dictionary structure to support both JSON and text output
 
-### 🔹 Design
+**🔹 Design**
 
 ```python
 def process_query_or_simulate(args, settings):
@@ -147,15 +147,15 @@ def process_query_or_simulate(args, settings):
 
 ---
 
-## 🎨 Output Styling (`color_utils.py`)
+### 🎨 Output Styling (`color_utils.py`)
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 * Applies ANSI color codes to output
 * Uses simple wrappers like `format_info()`, `format_error()`, `format_hint()`
 * Honors the `--color` flag and auto-detection of terminal support
 
-### 🔹 Highlights
+**🔹 Highlights**
 
 * Color can be:
 
@@ -165,9 +165,9 @@ def process_query_or_simulate(args, settings):
 
 * Prevents color bleed or malformed terminal prints in CI systems
 
-## 📝 Logging Setup (`logger_utils.py`)
+### 📝 Logging Setup (`logger_utils.py`)
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 * Sets up a per-environment logging system:
 
@@ -175,7 +175,7 @@ def process_query_or_simulate(args, settings):
   * Timestamped log files
   * Colored console output when enabled
 
-### 🔹 Design
+**🔹 Design**
 
 * Logs go to `logs/{ENV}/myproject.log`
 * Uses `RotatingFileHandler` with size limit from `.env`
@@ -184,7 +184,7 @@ def process_query_or_simulate(args, settings):
 
 ---
 
-## 🧪 Testing the CLI
+### 🧪 Testing the CLI
 
 * CLI tests live under `tests/cli/`
 * Integration tests simulate real `myproject` calls with subprocess
