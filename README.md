@@ -16,7 +16,7 @@ A **modern and reusable Python project template** for building libraries, CLIs, 
   * [📂 Structure](#-structure)
   * [🧱 Architecture](#-architecture)
 * [🚀 Usage](#-usage)
-* [🧑‍💼 Developer Guide](#-developer-guide)
+* [👨‍💻 Developer Guide](#-developer-guide)
 * [🔁 Continuous Integration](#-continuous-integration)
 * [🌐 Publishing to PyPI](#-publishing-to-pypi)
 * [📖 Documentation](#-documentation)
@@ -210,7 +210,7 @@ python -m myproject --help
 
 ---
 
-## 🧑‍💼 Developer Guide
+## 👨‍💻 Developer Guide
 
 ### 🔧 Makefile Commands
 
