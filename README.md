@@ -15,6 +15,7 @@ A **modern and reusable Python project template** for building libraries, CLIs, 
 * [📦 Project Structure](#-project-structure)
   * [📂 Structure](#-structure)
   * [🧱 Architecture](#-architecture)
+* [⚙ Requirements](#-requirements)
 * [🚀 Usage](#-usage)
 * [👨‍💻 Developer Guide](#-developer-guide)
 * [🔁 Continuous Integration](#-continuous-integration)
@@ -163,14 +164,33 @@ Ensures correctness, coverage, and lifecycle behavior:
 * Test config is isolated via `.env.test` + temp folders
 * Coverage enforced with `pytest --cov` and CI
 
-📄 See: [docs/test\_strategy.md](docs/unit_test_design.md)
+📄 See: [docs/unit_test_design.md](docs/unit_test_design.md)
 
 * 100% test coverage enforced via `make check-all`
 * Logs, `.env`, and outputs are fully isolated during testing
 
 ---
 
+## ⚙ Requirements
+
+### 👤 For Users
+
+- **Python ≥ 3.10**
+- Optional: `make` (used by `make install`)
+- Optional: `git` (only needed if installing from a Git repo)
+
+### 👨‍💻 For Developers
+
+- **Python ≥ 3.10**
+- `make` (to use the Makefile workflow)
+- `git` (for version control and pre-commit)
+- `pip`, `venv` (typically included with Python)
+
+---
+
 ## 🚀 Usage
+
+
 
 ### 📥 Installation
 
@@ -187,6 +207,8 @@ make install               # or: pip install -e .
 This installs only the base package, suitable for typical usage or deployment.
 
 #### 👨‍💻 For Developers (Contributors)
+
+
 
 Install the package **with development tools**, including testing, linting, and formatting tools:
 
