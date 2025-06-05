@@ -9,7 +9,7 @@ This document describes the internal architecture of the `myproject` CLI, design
 - [🗂️ File Structure](#-file-structure)
 - [📊 Diagram](#diagram)
 - [🔧 CLI Modules](#cli-modules)
-  - [Entry Flow](#entry-flow)
+  - [🔄 Entry Flow](#entry-flow)
   - [🧩 Argument Parsing (`parser.py`)](#-argument-parsing-parserpy)
   - [🛣️ Handler Routing (`handlers.py`)](#-handler-routing-handlerspy)
   - [🎨 Output Styling (`color_utils.py`)](#-output-styling-color_utilspy)
@@ -74,7 +74,7 @@ flowchart TD
 ---
 
 ## CLI Modules
-### Entry Flow
+### 🔄 Entry Flow
 #### 1. **`__main__.py`**
 
 The CLI is executable via `python -m myproject`, which delegates to `cli.main()`.
