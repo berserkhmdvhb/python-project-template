@@ -14,6 +14,12 @@ jobs:
       - name: ✅ Checkout repository
         uses: actions/checkout@v4
 
+      - name: 🔄 Pull latest from main (with rebase)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git pull --rebase origin main
+
       - name: 🕓 Update README badge timestamp (nocache)
         run: |
           TIMESTAMP=$(date +%s)
@@ -21,8 +27,6 @@ jobs:
 
       - name: 📝 Commit & push updated README
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
           git add README.md
           git diff --quiet && echo "No changes to commit" || git commit -m "Refresh coverage badge timestamp"
           git push
