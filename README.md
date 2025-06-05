@@ -163,11 +163,10 @@ Ensures correctness, coverage, and lifecycle behavior:
 * CLI is tested end-to-end using `run_cli()` with `subprocess.run`
 * Test config is isolated via `.env.test` + temp folders
 * Coverage enforced with `pytest --cov` and CI
-
-📄 See: [docs/unit_test_design.md](docs/unit_test_design.md)
-
 * 100% test coverage enforced via `make check-all`
 * Logs, `.env`, and outputs are fully isolated during testing
+
+📄 See: [docs/unit_test_design.md](docs/unit_test_design.md)
 
 ---
 
