@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/berserkhmdvhb/python-project-template/badge.svg?branch=main&nocache=1)](https://coveralls.io/github/berserkhmdvhb/python-project-template?branch=main)
 
 
-A **modern, minimal, and reusable Python project template** for building libraries, CLIs, or hybrid packages — designed with best practices, rich tooling, and robust environment-based behavior.
+A **modern and reusable Python project template** for building libraries, CLIs, or hybrid packages — designed with best practices, rich tooling, and robust environment-based behavior.
 
 ---
 
@@ -28,29 +28,25 @@ A **modern, minimal, and reusable Python project template** for building librari
 ## ✨ Features
 
 * 📜 Modern `pyproject.toml` (PEP 621) for build and metadata
-* 🧱 Clean hybrid architecture: CLI and importable core library
+* 🧱 Hybrid architecture: CLI and importable core library
 * 🔧 Environment-dependent behavior (DEV, UAT, PROD, TEST)
 * 📁 Structured logging with:
 
-  * Named log folders per environment (`logs/ENV/`)
-  * Log rotation using `RotatingFileHandler`
+  * Rotating logs under `logs/{ENV}/`
   * Configurable limits via `.env` or system vars
 * 📄 Robust environment management:
-
-  * Automatic `.env` file detection
-  * Manual `.env` override with `--dotenv-path`
-  * Test-aware loading via `PYTEST_CURRENT_TEST`
-* 🔍 Quality tools:
-
-  * `ruff` (format/lint), `mypy` (type-check), `pytest`, `coverage`
-  * Pre-commit hooks for consistent code hygiene
-* ⚖️ Fully tested CLI (`myproject`) and library (`myproject.core`) with 100% coverage
-* 🚧 Developer tooling:
+  * Automatic `.env` detection and loading
+  * Manual override via `--dotenv-path`
+  * Test-aware fallback via `PYTEST_CURRENT_TEST`
+* 🔍 Code quality and enforcement:
+  * `ruff` (format/lint), `mypy` (type-check)
+* ⚙️ Fully tested CLI (`myproject.cli`) and library (`myproject.core`) with 100% coverage.
+* 🛠️ Developer-friendly tooling:
 
   * `Makefile` commands
   * `conftest.py` with modular fixtures
   * GitHub Actions CI
-* 🌐 PyPI-ready: Includes sample `.pypirc`, build, and publish steps
+* 🌐 PyPI-ready: Includes `pypirc`, publish automation, metadata
 
 ---
 
@@ -64,10 +60,10 @@ python-project-template/
 ├── .pre-commit-config.yaml            # Pre-commit hooks
 ├── publish/
 │   └── .pypirc.sample                 # Sample config for PyPI/TestPyPI
-├── .env.sample                        # Environment variable sample
+├── .env.sample                        # Sample environment variables
 ├── LICENSE.txt
-├── Makefile                           # Automation for dev/test/publish
-├── MANIFEST.in                        # Include files in sdist
+├── Makefile                           # Automation tasks
+├── MANIFEST.in                        # Files to include in sdist
 ├── pyproject.toml                     # PEP 621 build + deps
 ├── README.md
 ├── src/
@@ -77,21 +73,21 @@ python-project-template/
 │       ├── cli/                       # CLI logic (modularized)
 │       ├── core.py                    # Core business logic (importable)
 │       ├── constants.py               # Default values, exit codes
-│       ├── settings.py                # Environment variable loading
-│       └── utils_logger.py            # Logging helpers
+│       ├── settings.py                # Environment and config handling
+│       └── utils_logger.py            # Logging setup
 └── tests/
     ├── cli/                           # CLI test modules
     ├── test_lib.py                    # Core logic tests
     ├── test_log.py                    # Logging tests
-    ├── test_settings.py               # Environment logic tests
-    ├── conftest.py                    # Fixtures and test setup
-    └── manual/demo.ipynb              # Playground notebook
+    ├── test_settings.py               # Env and config tests
+    ├── conftest.py                    # Shared fixtures and test setup
+    └── manual/demo.ipynb              # Sandbox notebook
 ```
 
 ### 🧱 Architecture
 
 
-This project follows a layered architecture emphasizing modularity, testability, and real-world deployment practices.
+This project follows a layered architecture emphasizing modularity, testability, automation, and separation of concerns.
 
 #### 1. **Configuration Layer (`settings.py`)**
 
@@ -153,7 +149,7 @@ Holds the core logic / business rules:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 make develop
 ```
 
@@ -161,7 +157,7 @@ make develop
 
 ```bash
 myproject --version
-myproject --query "hello"
+myproject --query "hello world"
 python -m myproject --help
 ```
 
@@ -218,10 +214,10 @@ python -m myproject --help
 
 ## 🔁 Continuous Integration
 
-* GitHub Actions CI pipeline runs on every push and PR:
+* GitHub Actions CI pipeline runs on push and PR:
 
   * Python 3.10 → 3.13
-  * Lint (Ruff), type-check (MyPy), test (Pytest)
+  * Lint/Format (Ruff), type-check (MyPy), test (Pytest)
   * Uploads coverage to Coveralls
 
 ---
@@ -234,7 +230,7 @@ python -m myproject --help
 cp publish/.pypirc.sample ~/.pypirc
 ```
 
-2. Build and publish:
+2. Build and release:
 
 ```bash
 make clean
@@ -252,12 +248,12 @@ make publish-dryrun
 
 ## 🎯 Goals
 
-* Start from a **best-practice Python layout**
-* Deploy a **configurable CLI + reusable core lib**
-* Implement **structured logging per environment**
-* Automate **test, build, and release** workflows
-* Maintain **100% test coverage and lint clean**
-* Simulate real **project lifecycle** scenarios
+* Start from a best-practice Python layout.
+* Deploy a configurable CLI + reusable core lib.
+* Implement structured logging per environment.
+* Automate test, build, coverage, packagin, and release workflows
+* Maintain 100% test coverage and strict lint.
+* Simulate realistic development lifecycle
 
 ---
 
