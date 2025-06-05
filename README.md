@@ -13,13 +13,13 @@ A **modern and reusable Python project template** for building libraries, CLIs, 
 
 * [✨ Features](#-features)
 * [📦 Project Structure](#-project-structure)
-
   * [📂 Structure](#-structure)
   * [🧱 Architecture](#-architecture)
 * [🚀 Quickstart](#-quickstart)
 * [🧑‍💼 Developer Guide](#-developer-guide)
 * [🔁 Continuous Integration](#-continuous-integration)
 * [🌐 Publishing to PyPI](#-publishing-to-pypi)
+* [📖 Documentation](#-documentation)
 * [🎯 Goals](#-goals)
 * [📄 License](#-license)
 
@@ -93,10 +93,11 @@ This project follows a layered architecture emphasizing modularity, testability,
 
 Handles environment setup and `.env` management:
 
-- Loads variables from system or `.env*` files (fallback chain)
-- Respects CLI overrides (`--env`, `--dotenv-path`)
-- Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
-- Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
+
+* Loads variables from system or `.env*` files (fallback chain)
+* Respects CLI overrides (`--env`, `--dotenv-path`)
+* Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
+* Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
 
 A summary of environments and env. files peresent, and the mechanism to manage and prioritize them are provided in table below. For a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md). 
 
@@ -114,32 +115,32 @@ A summary of environments and env. files peresent, and the mechanism to manage a
 
 Handles user interaction and command routing:
 
-- `main.py`: Entrypoint CLI dispatcher (run via `myproject` or `python -m`)
-- `parser.py`: Parses arguments with early env loading
-- `cli_main.py`: Coordinates CLI logic and handles output formatting
-- `handlers.py`: Routes commands to logic
-- `color_utils.py`: Handles styled terminal output (info, error, hint)
-- `logger_utils.py`: Sets up logging with rotation and per-env folders
+* `main.py`: Entrypoint CLI dispatcher (run via `myproject` or `python -m`)
+* `parser.py`: Parses arguments with early env loading
+* `cli_main.py`: Coordinates CLI logic and handles output formatting
+* `handlers.py`: Routes commands to logic
+* `color_utils.py`: Handles styled terminal output (info, error, hint)
+* `logger_utils.py`: Sets up logging with rotation and per-env folders
 
 #### 3. **Core Layer (`core.py`)**
 
 Holds the core logic / business rules:
 
-- Pure, reusable functions
-- Independent of CLI or environment setup
-- Fully typed and testable in isolation
+* Pure, reusable functions
+* Independent of CLI or environment setup
+* Fully typed and testable in isolation
 
 #### 4. **Utility Layer**
 
-- `constants.py`: Centralized default values and exit codes
-- `utils_logger.py`: Shared logging utilities and handlers
+* `constants.py`: Centralized default values and exit codes
+* `utils_logger.py`: Shared logging utilities and handlers
 
 #### 5. **Test Suite (`tests/`)**
 
-- Fully modular: core, CLI, settings, logging each tested in isolation
-- Uses `pytest`, `pytest-cov`, and `subprocess` for CLI integration tests
-- Custom fixtures in `conftest.py` simulate logging, temp envs, etc.
-- Achieves and enforces **95% test coverage**
+* Fully modular: core, CLI, settings, logging each tested in isolation
+* Uses `pytest`, `pytest-cov`, and `subprocess` for CLI integration tests
+* Custom fixtures in `conftest.py` simulate logging, temp envs, etc.
+* Achieves and enforces **95% test coverage**
 
 ---
 
@@ -243,6 +244,54 @@ make publish
 ```bash
 make publish-dryrun
 ```
+
+---
+
+## 📖 Documentation
+
+The `docs/` directory contains detailed internal documentation covering design decisions, implementation patterns, CLI architecture, debug output, logging strategy, and more.
+
+| Document                                                    | Description                                                                  |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [`cli_architecture.md`](docs/cli_architecture.md)           | Overview of CLI modules, their flow, entry points, and command routing logic |
+| [`core_logic.md`](docs/core_logic.md)                       | Core logic in `core.py`: processing rules, transformations, structure        |
+| [`environment_config.md`](docs/environment_config.md)       | How `.env` files are resolved and prioritized across environments            |
+| [`logging_system.md`](docs/logging_system.md)               | Setup and teardown of structured logging per environment, with rotation      |
+| [`debug_diagnostics.md`](docs/debug_diagnostics.md)         | Debug and diagnostic output systems, `--debug`, `MYPROJECT_DEBUG_ENV_LOAD`   |
+| [`test_strategy.md`](docs/test_strategy.md)                 | Testing layers, fixtures, CLI integration vs. unit testing, coverage tactics |
+| [`env-logging-scenarios.md`](docs/env-logging-scenarios.md) | End-to-end `.env` and logging scenarios, edge cases and fallback resolution  |
+
+> These documents are designed to be both developer-facing and audit-ready — helpful for onboarding, troubleshooting, and future refactoring.
+
+
+
+
+The `docs/` directory contains detailed internal documentation covering design decisions, implementation patterns, CLI architecture, debug output, logging strategy, and more.
+
+
+
+| Document                                                    | Description                                                                  |
+
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+
+| [`cli_architecture.md`](docs/cli_architecture.md)           | Overview of CLI modules, their flow, entry points, and command routing logic |
+
+| [`core_logic.md`](docs/core_logic.md)                       | Core logic in `core.py`: processing rules, transformations, structure        |
+
+| [`environment_config.md`](docs/environment_config.md)       | How `.env` files are resolved and prioritized across environments            |
+
+| [`logging_system.md`](docs/logging_system.md)               | Setup and teardown of structured logging per environment, with rotation      |
+
+| [`debug_diagnostics.md`](docs/debug_diagnostics.md)         | Debug and diagnostic output systems, `--debug`, `MYPROJECT_DEBUG_ENV_LOAD`   |
+
+| [`test_strategy.md`](docs/test_strategy.md)                 | Testing layers, fixtures, CLI integration vs. unit testing, coverage tactics |
+
+| [`env-logging-scenarios.md`](docs/env-logging-scenarios.md) | End-to-end `.env` and logging scenarios, edge cases and fallback resolution  |
+
+
+
+> These documents are designed to be both developer-facing and audit-ready — helpful for onboarding, troubleshooting, and future refactoring.
+
 
 ---
 
