@@ -1,4 +1,18 @@
-"""Argument parsing and early environment setup for MyProject CLI."""
+"""
+Argument parsing and early environment setup for MyProject CLI.
+
+This module supports two main responsibilities:
+
+1. Early argument parsing:
+   - Extracts and applies environment-related flags like `--dotenv-path` and `--env`
+   - These are parsed early so settings can be loaded before building the full parser
+
+2. Custom parsing behavior:
+   - Provides `nonempty_str` as a stricter type for query input
+   - Defines `LoggingArgumentParser`, which logs and colorizes CLI argument errors
+
+This module is used by `cli_main.py` during initial CLI bootstrapping.
+"""
 
 from __future__ import annotations
 
@@ -11,11 +25,26 @@ from typing import NoReturn
 from myproject import constants as const
 from myproject.cli.utils_color import format_error, should_use_color
 
+# Error message shown for blank or missing --query
 _ERR_MSG_EMPTY_QUERY = "Query string must not be empty"
+
+# Warning message for invalid --dotenv-path
 _WARNING_DOTENV_NOT_FOUND = "Warning: dotenv path not found: %s"
 
 
 def nonempty_str(value: str) -> str:
+    """
+    Argument type function for argparse to ensure non-empty strings.
+
+    Args:
+        value: The input string.
+
+    Returns:
+        The stripped string.
+
+    Raises:
+        ArgumentTypeError: If the string is empty or only whitespace.
+    """
     stripped = value.strip()
     if not stripped:
         raise argparse.ArgumentTypeError(_ERR_MSG_EMPTY_QUERY)
@@ -23,6 +52,16 @@ def nonempty_str(value: str) -> str:
 
 
 class LoggingArgumentParser(argparse.ArgumentParser):
+    """
+    A subclass of ArgumentParser that logs and colorizes argument errors.
+
+    Overrides the `error()` method to:
+    - Log the error to the logger (if available)
+    - Print a colored error to stderr
+    - Show usage help
+    - Exit with code `EXIT_INVALID_USAGE`
+    """
+
     def error(self, message: str) -> NoReturn:
         from logging import getLogger
 
@@ -37,12 +76,24 @@ class LoggingArgumentParser(argparse.ArgumentParser):
 
 
 def apply_early_env(argv: list[str] | None) -> argparse.ArgumentParser:
+    """
+    Apply early --env and --dotenv-path arguments to influence environment loading.
+
+    This must be run before `load_settings()` and parser construction.
+
+    Args:
+        argv: Raw CLI arguments.
+
+    Returns:
+        An early-stage ArgumentParser instance (for re-use if needed).
+    """
     early_parser = argparse.ArgumentParser(add_help=False)
     early_parser.add_argument("--dotenv-path", type=str)
     early_parser.add_argument("--env", type=str)
 
     early_args, _ = early_parser.parse_known_args(argv)
 
+    # Apply --dotenv-path (if provided)
     dotenv_raw = early_args.dotenv_path
     if dotenv_raw:
         dotenv_path = Path(dotenv_raw).expanduser().resolve()
@@ -51,6 +102,7 @@ def apply_early_env(argv: list[str] | None) -> argparse.ArgumentParser:
         else:
             sys.stderr.write(_WARNING_DOTENV_NOT_FOUND % dotenv_path + "\n")
 
+    # Apply --env (if provided)
     env_raw = early_args.env
     if env_raw:
         os.environ["MYPROJECT_ENV"] = env_raw.upper()

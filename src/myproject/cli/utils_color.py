@@ -1,3 +1,27 @@
+"""
+ANSI color formatting utilities for CLI output.
+
+This module provides consistent, readable, and styled formatting for all
+CLI messages across `handlers.py`, `diagnostics.py`, and argument error handling.
+
+Features:
+- Auto-resets color using `colorama` for cross-platform safety
+- Encodes stdout in UTF-8 on Windows
+- Defines formatters for all standard message types: error, info, debug, etc.
+- Adds color only if terminal supports it (or if forced)
+
+Usage:
+    format_info("message", use_color=True)
+    print_lines(["[RESULT] Foo", "Input query : bar"], use_color=True)
+
+Exported Symbols:
+    - COLOR_* constants
+    - format_error / format_info / format_success / format_debug / ...
+    - print_lines
+    - should_use_color
+    - colorize_line
+"""
+
 import logging
 import sys
 from typing import Final
@@ -53,7 +77,19 @@ def should_use_color(mode: ColorMode) -> bool:
 
 
 def colorize_line(line: str) -> str:
-    """Apply appropriate color based on the content of the line."""
+    """
+    Apply appropriate color based on the content of the line.
+
+    - `[RESULT]` lines are cyan
+    - Input or processed lines are yellow
+    - All others are returned unstyled
+
+    Args:
+        line: A raw CLI output line.
+
+    Returns:
+        The colorized string, if matched, or the original line.
+    """
     content = line.strip()
     if content.startswith("[RESULT]"):
         return f"{COLOR_HEADER}{line}{RESET}"
@@ -68,9 +104,10 @@ def print_lines(lines: list[str], *, use_color: bool, force_stdout: bool = False
     """
     Print or log a list of lines with optional color formatting.
 
-    - If `force_stdout` is True, print directly to stdout
-    (with our without color, depending on `use_color`).
-    - Otherwise, log to logger.info (with or without color).
+    Args:
+        lines: A list of output lines.
+        use_color: Whether to apply ANSI formatting.
+        force_stdout: If True, bypass logging and print directly to stdout.
     """
     for line in lines:
         colored = colorize_line(line) if use_color else line

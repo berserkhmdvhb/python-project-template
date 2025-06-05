@@ -1,3 +1,16 @@
+"""
+Global pytest fixtures for MyProject test suite.
+
+This file defines reusable fixtures to:
+- Control and isolate environment variable state
+- Setup temporary directories and test `.env` files
+- Reload settings cleanly between tests
+- Manage log capture and rotation configuration
+- Provide CLI subprocess testing tools
+
+All fixtures are designed for use in a multi-env configuration test setup.
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -21,7 +34,6 @@ if TYPE_CHECKING:
 
     from myproject.types import LoadSettingsFunc, TestRootSetup
 
-
 # ---------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------
@@ -35,6 +47,10 @@ LOGGER_NAME: Final = "myproject"
 
 @pytest.fixture(autouse=True)
 def clean_myproject_logger() -> Generator[None, None, None]:
+    """
+    Clears all logging handlers for 'myproject' before and after each test
+    to avoid log pollution between tests.
+    """
     logger = logging.getLogger(LOGGER_NAME)
     teardown_logger(logger)
     yield
@@ -50,7 +66,7 @@ def clean_myproject_logger() -> Generator[None, None, None]:
 def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
     """
     Automatically clears all MYPROJECT-related env vars before each test
-    to ensure isolation and prevent contamination from outer environments.
+    to ensure test isolation.
     """
     vars_to_clear = [
         "MYPROJECT_ENV",
@@ -60,11 +76,10 @@ def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
         "MYPROJECT_DEBUG_ENV_LOAD",
         "DOTENV_PATH",
     ]
-
     for var in vars_to_clear:
         monkeypatch.delenv(var, raising=False)
 
-    # Ensure no debug logging unless test explicitly sets it
+    # Prevent verbose debug output unless test sets it
     monkeypatch.setenv("MYPROJECT_DEBUG_ENV_LOAD", "0")
 
 
@@ -74,25 +89,18 @@ def clear_myproject_env(monkeypatch: MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def load_fresh_settings(
-    monkeypatch: MonkeyPatch,
-) -> LoadSettingsFunc:
+def load_fresh_settings(monkeypatch: MonkeyPatch) -> LoadSettingsFunc:
     """
-    Reload settings with test mode enabled (default pytest behavior).
-    Used in standard test environments.
+    Reload settings in 'test mode', i.e. PYTEST_CURRENT_TEST is set.
+    Simulates default test behavior with `.env.test`.
     """
 
-    def _load(
-        dotenv_path: Path | None = None,
-        root_dir: Path | None = None,
-    ) -> ModuleType:
+    def _load(dotenv_path: Path | None = None, root_dir: Path | None = None) -> ModuleType:
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
-
         if dotenv_path:
             monkeypatch.setenv("DOTENV_PATH", str(dotenv_path.resolve()))
         else:
             monkeypatch.delenv("DOTENV_PATH", raising=False)
-
         if root_dir:
             monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(root_dir.resolve()))
         else:
@@ -108,18 +116,13 @@ def load_fresh_settings(
 
 
 @pytest.fixture
-def load_fresh_settings_no_test_mode(
-    monkeypatch: MonkeyPatch,
-) -> LoadSettingsFunc:
+def load_fresh_settings_no_test_mode(monkeypatch: MonkeyPatch) -> LoadSettingsFunc:
     """
-    Reload settings with test mode disabled (simulates real execution).
-    Use only in tests validating runtime/fallback behavior.
+    Reload settings with PYTEST_CURRENT_TEST unset.
+    Simulates runtime behavior to test fallback paths and non-test execution.
     """
 
-    def _load(
-        dotenv_path: Path | None = None,
-        root_dir: Path | None = None,
-    ) -> ModuleType:
+    def _load(dotenv_path: Path | None = None, root_dir: Path | None = None) -> ModuleType:
         monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
         os.environ.pop("PYTEST_CURRENT_TEST", None)
 
@@ -127,7 +130,6 @@ def load_fresh_settings_no_test_mode(
             monkeypatch.setenv("DOTENV_PATH", str(dotenv_path.resolve()))
         else:
             monkeypatch.delenv("DOTENV_PATH", raising=False)
-
         if root_dir:
             monkeypatch.setenv("MYPROJECT_ROOT_DIR_FOR_TESTS", str(root_dir.resolve()))
         else:
@@ -148,26 +150,21 @@ def load_fresh_settings_no_test_mode(
 
 
 @pytest.fixture
-def setup_test_root(
-    tmp_path: Path,
-    monkeypatch: MonkeyPatch,
-) -> TestRootSetup:
+def setup_test_root(tmp_path: Path, monkeypatch: MonkeyPatch) -> TestRootSetup:
     """
-    Centralized fixture to:
-    - Patch get_root_dir() to return tmp_path
-    - Optionally create .env files with MYPROJECT_ENV
-    - Set env vars
-    - Reload settings and return patched root path
+    Sets up a temporary root with optional `.env*` files and env vars.
+
+    - Overrides get_root_dir to use tmp_path
+    - Creates .env files if requested
+    - Sets up test environment and reloads settings
     """
 
     def _setup(
-        *,
-        env_files: list[str] | None = None,
-        env_vars: dict[str, str] | None = None,
+        *, env_files: list[str] | None = None, env_vars: dict[str, str] | None = None
     ) -> Path:
         monkeypatch.setenv("PYTEST_CURRENT_TEST", "dummy")
 
-        # Patch get_root_dir dynamically to return tmp_path
+        # Patch get_root_dir() to point to tmp_path
         monkeypatch.setattr("myproject.settings.get_root_dir", lambda: tmp_path)
 
         if env_vars:
@@ -176,8 +173,10 @@ def setup_test_root(
 
         if env_files:
             for fname in env_files:
+                # Generate env content dynamically based on filename
                 (tmp_path / fname).write_text(f"MYPROJECT_ENV={Path(fname).stem.upper()}")
 
+        # Remove cached settings module to force clean reload
         sys.modules.pop("myproject.settings", None)
 
         import myproject.settings as sett
@@ -197,6 +196,10 @@ def setup_test_root(
 
 @pytest.fixture
 def temp_log_dir(monkeypatch: MonkeyPatch) -> Generator[Path, None, None]:
+    """
+    Provides a temporary directory for log file output and injects it
+    into logger config via monkeypatch.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir).resolve()
         monkeypatch.setenv("MYPROJECT_ENV", "TEST")
@@ -207,8 +210,10 @@ def temp_log_dir(monkeypatch: MonkeyPatch) -> Generator[Path, None, None]:
         importlib.reload(sett)
         importlib.reload(clu)
 
+        # Patch log directory to use temporary location
         monkeypatch.setattr("myproject.settings.get_log_dir", lambda: tmp_path)
         yield tmp_path
+
         teardown_logger(logging.getLogger(LOGGER_NAME))
 
 
@@ -219,6 +224,10 @@ def temp_log_dir(monkeypatch: MonkeyPatch) -> Generator[Path, None, None]:
 
 @pytest.fixture
 def patched_settings(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
+    """
+    Sets DEV-mode environment with custom log settings and returns log path.
+    Useful for testing rotating file handler setup.
+    """
     monkeypatch.setenv("MYPROJECT_ENV", "DEV")
     monkeypatch.setenv("MYPROJECT_LOG_MAX_BYTES", "50")
     monkeypatch.setenv("MYPROJECT_LOG_BACKUP_COUNT", "1")
@@ -240,6 +249,11 @@ def patched_settings(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
 
 @pytest.fixture
 def patch_env(monkeypatch: MonkeyPatch) -> Callable[[str], None]:
+    """
+    Fixture that returns a callable to patch the current environment.
+    Usage: patch_env("uat")
+    """
+
     def _patch(env_name: str) -> None:
         monkeypatch.setenv("MYPROJECT_ENV", env_name)
 
@@ -253,6 +267,9 @@ def patch_env(monkeypatch: MonkeyPatch) -> Callable[[str], None]:
 
 @pytest.fixture
 def log_stream() -> Generator[StringIO, None, None]:
+    """
+    Captures log output to a StringIO stream for log inspection in tests.
+    """
     stream = StringIO()
     handler = logging.StreamHandler(stream)
     formatter = logging.Formatter("[%(levelname)s] %(message)s")
@@ -274,8 +291,8 @@ def log_stream() -> Generator[StringIO, None, None]:
 @pytest.fixture
 def debug_logger(log_stream: StringIO) -> logging.Logger:
     """
-    Sets up a logger with DEBUG level and attaches log_stream.
-    Useful for capturing diagnostic output in dotenv-related tests.
+    Configures a DEBUG logger and attaches it to the provided stream.
+    Useful for diagnosing dotenv behavior.
     """
     teardown_logger()
     logger = logging.getLogger(LOGGER_NAME)
@@ -298,6 +315,11 @@ def debug_logger(log_stream: StringIO) -> logging.Logger:
 
 @pytest.fixture
 def run_cli(tmp_path: Path) -> Callable[..., tuple[str, str, int]]:
+    """
+    Returns a CLI runner for integration tests via subprocess.
+    Wraps the invoke_cli helper with tmp_path isolation.
+    """
+
     def _run(*args: str, env: dict[str, str] | None = None) -> tuple[str, str, int]:
         return invoke_cli(args, tmp_path=tmp_path, env=env)
 

@@ -1,12 +1,25 @@
-"""Main CLI execution logic for MyProject.
+"""
+Main CLI execution logic for MyProject.
 
-This script coordinates all parts of the CLI:
-- Parses early and main arguments
-- Loads environment configuration
-- Sets up logging
-- Executes the query processing logic
-- Provides diagnostics via --debug
-- Supports optional tab completion via argcomplete
+This script coordinates the entire lifecycle of the CLI:
+
+- Applies early environment overrides via `apply_early_env`
+- Loads prioritized .env files with `load_settings()`
+- Reloads settings to reflect updated environment state
+- Creates the CLI argument parser (`argparse.ArgumentParser`)
+- Sets up structured logging (per environment)
+- Handles optional tab-completion (if `argcomplete` is available)
+- Executes query processing or simulation logic from `handlers.py`
+- Handles diagnostics output when `--debug` is enabled
+- Routes formatted output to either stdout, stderr, or logs
+- Catches and logs all errors gracefully with exit codes
+
+Can be invoked directly or as part of `myproject` entry point:
+
+    python -m myproject --query "foo"
+    myproject --query "foo"
+
+Exit codes follow Unix conventions and are defined in `constants.py`.
 """
 
 from __future__ import annotations
@@ -30,17 +43,28 @@ from myproject.cli.utils_color import (
 from myproject.cli.utils_logger import setup_logging, teardown_logger
 from myproject.settings import load_settings
 
+__all__ = ["main"]
+
 # Detect argcomplete support (optional dependency)
 ARGCOMPLETE_AVAILABLE = find_spec("argcomplete") is not None
 
 
 def main(argv: list[str] | None = None) -> None:
+    """
+    Entry point for the CLI tool.
+
+    Args:
+        argv: Optional list of arguments (used for testing or internal calls).
+
+    Raises:
+        SystemExit: With appropriate exit code depending on error or result.
+    """
     early_parser = apply_early_env(argv)
     load_settings()
 
     from myproject import settings as sett
 
-    reload(sett)
+    reload(sett)  # Ensure any .env changes are reflected
 
     parser = cli_parser.create_parser(early_parser)
 
@@ -49,7 +73,8 @@ def main(argv: list[str] | None = None) -> None:
             import argcomplete
 
             argcomplete.autocomplete(parser)
-        except Exception as exc:  # noqa: BLE001  # argcomplete may fail in unsupported shells
+        # argcomplete may fail in unsupported shells
+        except Exception as exc:  # noqa: BLE001
             logging.getLogger("myproject").debug("argcomplete setup failed: %s", exc)
 
     args = parser.parse_args(argv)

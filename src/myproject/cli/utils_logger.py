@@ -1,3 +1,29 @@
+"""
+Custom logging setup utilities for MyProject CLI and core library.
+
+This module defines project-wide logging behavior:
+- Centralized `myproject` logger with consistent format and handlers
+- Rotating file logging with custom filename pattern (info.log, info_1.log, etc.)
+- Console logging with optional log level override
+- Environment name (e.g., DEV, UAT, PROD) injected into every log record
+
+Typical Usage:
+    from myproject.cli.utils_logger import setup_logging
+    setup_logging()
+
+Exports:
+    - LOGGER_NAME: Central logger identifier
+    - setup_logging: Attach console/file handlers with environment-aware config
+    - teardown_logger: Cleanly detach all logging handlers
+    - EnvironmentFilter: Injects `record.env` into each log message
+    - CustomRotatingFileHandler: Renames rotated logs as `info_1.log`, etc.
+
+Notes:
+- File logs go to the directory resolved via settings (`get_log_dir()`)
+- `is_dev()` enables DEBUG-level console logging
+- Logging format is defined in `myproject.constants.LOG_FORMAT`
+"""
+
 from __future__ import annotations
 
 import contextlib

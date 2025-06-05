@@ -1,9 +1,19 @@
-"""Result processing and output handlers for MyProject CLI.
+"""
+Result processing and output handlers for MyProject CLI.
 
-This module contains developer-facing logic for:
-- Handling and displaying CLI command results.
-- Simulating behavior depending on the environment (e.g., DEV mock logic).
-- Dynamically formatting console or JSON output based on verbosity and user config.
+This module provides the core CLI-side behavior for:
+- Executing query logic (real or simulated)
+- Formatting output based on CLI options (text vs JSON)
+- Emitting colored messages, structured logs, and user-facing results
+- DEV-mode simulation and failure injection for logging/testing purposes
+
+This is the final step of the CLI pipeline after arguments and settings are parsed.
+It routes to the core logic (`process_query`) or simulates it, and decides how
+to display or log the results based on the environment and verbosity flags.
+
+Functions:
+- handle_result: Format and emit the result (stdout or log)
+- process_query_or_simulate: Execute real or simulated processing logic
 """
 
 from __future__ import annotations
@@ -23,6 +33,8 @@ from myproject.cli.utils_color import (
 )
 from myproject.core import process_query
 
+__all__ = ["handle_result", "process_query_or_simulate"]
+
 
 def handle_result(
     processed: str,
@@ -31,11 +43,18 @@ def handle_result(
     *,
     use_color: bool,
 ) -> None:
-    """Render and output results based on format, verbosity, and color settings."""
+    """
+    Render and output the final result (text or JSON) based on CLI arguments.
+
+    Args:
+        processed: The processed result string from core or simulated logic.
+        args: Parsed CLI arguments.
+        sett: Environment-aware settings module.
+        use_color: Whether to apply ANSI color formatting.
+    """
     logger = logging.getLogger("myproject")
     verbose = args.verbose or args.debug
 
-    # Shared formatter for environment message
     format_env_message = {
         "DEV": format_debug,
         "UAT": format_info,
@@ -57,7 +76,6 @@ def handle_result(
         sys.stdout.write(json.dumps(payload, indent=2) + "\n")
 
         if verbose:
-            # This is a user-facing line — must remain [INFO]
             sys.stdout.write(
                 format_info(f"Processed query: {payload['output']}", use_color=use_color) + "\n"
             )
@@ -67,13 +85,12 @@ def handle_result(
             logger.warning(env_message) if sett.is_prod() else logger.info(env_message)
         return
 
-    # Default text output
+    # Text output fallback (default)
     results = [
         "[RESULT]",
         f"Input query    : {args.query}",
         processed,
     ]
-
     logger.info("Processed query: %s", processed)
 
     if verbose:
@@ -91,12 +108,33 @@ def handle_result(
 
 
 def _simulate_error() -> None:
+    """
+    Internal helper that raises a ValueError to simulate a failure.
+
+    Used in DEV mode to test logging and error handling.
+    """
     error_msg = "Simulated runtime failure for DEV debugging."
     raise ValueError(error_msg)
 
 
 def process_query_or_simulate(args: argparse.Namespace, sett: ModuleType) -> str:
-    """Run main logic or simulate it for DEV mode, including error simulation for logging."""
+    """
+    Run main query logic or simulate it in DEV mode.
+
+    Simulated behavior:
+    - If `--query fail` is passed in DEV mode, triggers `_simulate_error`
+    - Otherwise returns a mock processed result
+
+    Args:
+        args: Parsed CLI arguments.
+        sett: The loaded settings module.
+
+    Returns:
+        Processed string result (real or simulated).
+
+    Raises:
+        Any exception from `process_query` or `_simulate_error`.
+    """
     logger = logging.getLogger("myproject")
     verbose = args.verbose or args.debug
 
