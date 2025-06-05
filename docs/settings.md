@@ -53,16 +53,17 @@ The logic is designed to be minimal and consistent across CLI, library, and test
 
 `.env` file selection is critical for predictable config behavior. The following table shows the full priority chain:
 
-| Priority | Source          | Condition                            | Notes                                   |
-| -------- | --------------- | ------------------------------------ | --------------------------------------- |
-| 1️⃣      | `DOTENV_PATH`   | Manually set via env var or CLI flag | Highest priority override               |
-| 2️⃣      | `.env.override` | Exists in root                       | Enforced in CI/CD or protected settings |
-| 3️⃣      | `.env`          | Exists in root                       | Main shared team settings               |
-| 4️⃣      | `.env.local`    | Exists in root                       | Developer machine-local overrides       |
-| 5️⃣      | `.env.test`     | Running under `PYTEST_CURRENT_TEST`  | Clean test-specific isolation           |
-| 6️⃣      | `.env.sample`   | Fallback when nothing else is found  | For documentation purposes only         |
+| Priority | File            | Loaded When                   | Purpose / Use Case                                               | Committed to Git? | Override Others?   |
+| -------- | --------------- | ----------------------------- | ---------------------------------------------------------------- | ----------------- | ------------------ |
+| 1️⃣      | `DOTENV_PATH`   | Set via environment variable  | Force a custom env file at runtime (e.g. for advanced CLI usage) | ❌ (user-defined)  | ✅                  |
+| 2️⃣      | `.env.override` | Exists in project root        | Enforced values (CI/CD, production)                              | ✅                 | ✅                  |
+| 3️⃣      | `.env`          | Exists in project root        | Main team-shared configuration                                   | ✅                 | ✅ (if no override) |
+| 4️⃣      | `.env.local`    | Exists in project root        | Developer-specific overrides (not shared)                        | ❌ (`.gitignore`)  | ✅ (over `.env`)    |
+| 5️⃣      | `.env.test`     | Running under `pytest`        | Clean isolation for tests                                        | ✅ (optional)      | ✅ (in test mode)   |
+| 6️⃣      | `.env.sample`   | None of the above are present | Documentation or last-resort fallback                            | ✅                 | 🚫                 |
+File resolution happens once and is cached to avoid repeated loading.
 
-> File resolution happens once and is cached to avoid repeated loading.
+For a comprehensive walkthrough of how these environment layers interact — including practical CLI scenarios, .env overrides, logging folder behaviors, and test-specific behavior — refer to [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md). 
 
 ---
 
