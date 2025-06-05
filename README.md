@@ -86,20 +86,22 @@ python-project-template/
 
 ### 🧱 Architecture
 
+This project follows a layered, testable, and modular architecture with strong separation of concerns. It is designed to support both CLI and importable use cases with rich observability and extensibility.
 
-This project follows a layered architecture emphasizing modularity, testability, automation, and separation of concerns.
+---
 
 #### 1. **Configuration Layer (`settings.py`)**
 
-Handles environment setup and `.env` management:
+Handles all environment and configuration logic:
 
+* Loads variables from `.env` files or system environment
+* Supports override via `--dotenv-path` or `--env` CLI flags
+* Implements a **priority-based fallback chain** with `.env.override`, `.env.local`, etc.
+* Recognizes `PYTEST_CURRENT_TEST` to activate `.env.test` automatically in test mode
+* Supports detailed **dotenv resolution diagnostics** (`MYPROJECT_DEBUG_ENV_LOAD`)
+* Caches results to avoid redundant loading during app lifecycle
 
-* Loads variables from system or `.env*` files (fallback chain)
-* Respects CLI overrides (`--env`, `--dotenv-path`)
-* Supports debug output via `MYPROJECT_DEBUG_ENV_LOAD`
-* Smart behavior in test mode (`PYTEST_CURRENT_TEST`)
-
-A summary of environments and env. files peresent, and the mechanism to manage and prioritize them are provided in table below. For a thorugh and detailed explanation and demo, pelase visit [docs/env-logging-scenarios.md](https://github.com/berserkhmdvhb/python-project-template/blob/main/docs/env-logging-scenarios.md). 
+📄 See: [docs/environment\_config.md](docs/environment_config.md), [docs/env-logging-scenarios.md](docs/env-logging-scenarios.md)
 
 | Priority | File            | Loaded When                   | Purpose / Use Case                                               | Committed to Git? | Override Others?   |
 | -------- | --------------- | ----------------------------- | ---------------------------------------------------------------- | ----------------- | ------------------ |
@@ -108,43 +110,66 @@ A summary of environments and env. files peresent, and the mechanism to manage a
 | 3️⃣      | `.env`          | Exists in project root        | Main team-shared configuration                                   | ✅                 | ✅ (if no override) |
 | 4️⃣      | `.env.local`    | Exists in project root        | Developer-specific overrides (not shared)                        | ❌ (`.gitignore`)  | ✅ (over `.env`)    |
 | 5️⃣      | `.env.test`     | Running under `pytest`        | Clean isolation for tests                                        | ✅ (optional)      | ✅ (in test mode)   |
-| 6️⃣      | `.env.sample`   | None of the above are present | Documentation or last-resort fallback                            | ✅                 | 🚫                 |
-
-> Note: This management or environments and prioritizing them is implemented in `src/myproject/settings.py`
-#### 2. **CLI Layer (`cli/`)**
-
-Handles user interaction and command routing:
-
-* `main.py`: Entrypoint CLI dispatcher (run via `myproject` or `python -m`)
-* `parser.py`: Parses arguments with early env loading
-* `cli_main.py`: Coordinates CLI logic and handles output formatting
-* `handlers.py`: Routes commands to logic
-* `color_utils.py`: Handles styled terminal output (info, error, hint)
-* `logger_utils.py`: Sets up logging with rotation and per-env folders
-
-#### 3. **Core Layer (`core.py`)**
-
-Holds the core logic / business rules:
-
-* Pure, reusable functions
-* Independent of CLI or environment setup
-* Fully typed and testable in isolation
-
-#### 4. **Utility Layer**
-
-* `constants.py`: Centralized default values and exit codes
-* `utils_logger.py`: Shared logging utilities and handlers
-
-#### 5. **Test Suite (`tests/`)**
-
-* Fully modular: core, CLI, settings, logging each tested in isolation
-* Uses `pytest`, `pytest-cov`, and `subprocess` for CLI integration tests
-* Custom fixtures in `conftest.py` simulate logging, temp envs, etc.
-* Achieves and enforces **95% test coverage**
+| 6️⃣      | `.env.sample`   | None of the above are present | Documentation or last-resort fallback                            | ✅                 | ❌                  |
 
 ---
 
-## 🚀 Quickstart
+#### 2. **CLI Layer (`cli/`)**
+
+Handles parsing, routing, and formatted terminal output:
+
+* `main.py`: Entrypoint for CLI dispatcher (installed or `python -m`)
+* `parser.py`: Builds `argparse` parser with early environment hook
+* `cli_main.py`: CLI controller — coordinates parsing, logging, handlers
+* `handlers.py`: Routes logic to the correct function or output formatter
+* `diagnostics.py`: Outputs debug diagnostics when `--debug` or `MYPROJECT_DEBUG_ENV_LOAD=1`
+* `utils_color.py`: Color styling helpers for terminal output
+* `utils_logger.py`: Logging system with rotation, teardown, and multi-env folders
+
+📄 See: [docs/cli\_architecture.md](docs/cli_architecture.md), [docs/debug\_diagnostics.md](docs/debug_diagnostics.md)
+
+---
+
+#### 3. **Core Logic Layer (`core.py`)**
+
+Contains business logic and reusable functions:
+
+* Logic is **pure**, typed, and reusable across CLI or other interfaces
+* Contains processing, filtering, normalization, or search logic
+* No dependency on `os`, `argparse`, or logging
+
+📄 See: [docs/core\_logic.md](docs/core_logic.md)
+
+---
+
+#### 4. **Utilities Layer**
+
+Shared constants and reusable helpers:
+
+* `constants.py`: Default values, special symbols, exit codes, and display defaults
+* `utils_logger.py`: Central logging functions used by CLI and tests
+* `diagnostics.py`: Prints debug and environment state introspection
+* Caching decorators are used internally to avoid redundant `.env` parsing
+
+---
+
+#### 5. **Testing Layer (`tests/`)**
+
+Ensures correctness, coverage, and lifecycle behavior:
+
+* All modules are tested with **unit tests** and **real CLI subprocesses**
+* CLI is tested end-to-end using `run_cli()` with `subprocess.run`
+* Test config is isolated via `.env.test` + temp folders
+* Coverage enforced with `pytest --cov` and CI
+
+📄 See: [docs/test\_strategy.md](docs/test_strategy.md)
+
+* 100% test coverage enforced via `make check-all`
+* Logs, `.env`, and outputs are fully isolated during testing
+
+---
+
+## 🚀 Usage
 
 ### 📥 Installation (Editable Mode)
 
