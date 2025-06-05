@@ -95,7 +95,7 @@ You can override log paths or rotate behavior via environment variables in `.env
 def setup_logging(env: str, verbose: bool, debug: bool, reset: bool = False) -> None:
 ```
 
-### 🔹 Purpose
+**🔹 Purpose**
 
 Initializes the logging system with proper handlers and format, depending on the environment and verbosity.
 
