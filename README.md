@@ -261,35 +261,6 @@ The `docs/` directory contains detailed internal documentation covering design d
 | [`test_strategy.md`](docs/test_strategy.md)                 | Testing layers, fixtures, CLI integration vs. unit testing, coverage tactics |
 | [`env-logging-scenarios.md`](docs/env-logging-scenarios.md) | End-to-end `.env` and logging scenarios, edge cases and fallback resolution  |
 
-> These documents are designed to be both developer-facing and audit-ready — helpful for onboarding, troubleshooting, and future refactoring.
-
-
-
-
-The `docs/` directory contains detailed internal documentation covering design decisions, implementation patterns, CLI architecture, debug output, logging strategy, and more.
-
-
-
-| Document                                                    | Description                                                                  |
-
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
-
-| [`cli_architecture.md`](docs/cli_architecture.md)           | Overview of CLI modules, their flow, entry points, and command routing logic |
-
-| [`core_logic.md`](docs/core_logic.md)                       | Core logic in `core.py`: processing rules, transformations, structure        |
-
-| [`environment_config.md`](docs/env_settings.md)       | How `.env` files are resolved and prioritized across environments            |
-
-| [`env-logging-scenarios.md`](docs/env-logging-scenarios.md) | End-to-end `.env` and logging scenarios, edge cases and fallback resolution  |
-
-| [`logging_system.md`](docs/logging_system.md)               | Setup and teardown of structured logging per environment, with rotation      |
-
-| [`debug_diagnostics.md`](docs/debug_diagnostics.md)         | Debug and diagnostic output systems, `--debug`, `MYPROJECT_DEBUG_ENV_LOAD`   |
-
-| [`test_strategy.md`](docs/unit_tests_design.md)                 | Testing layers, fixtures, CLI integration vs. unit testing, coverage tactics |
-
-
-
 
 > These documents are designed to be both developer-facing and audit-ready — helpful for onboarding, troubleshooting, and future refactoring.
 
