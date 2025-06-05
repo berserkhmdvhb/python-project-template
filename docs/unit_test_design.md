@@ -1,5 +1,4 @@
-# 🧪 Testing Strategy
-
+# 🧪 Unit Test Design and Strategy
 This document explains the comprehensive testing approach used in the `myproject` CLI tool. The project emphasizes clean test separation, reproducibility, and full coverage with realistic CLI simulation.
 
 ---
