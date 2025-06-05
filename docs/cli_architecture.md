@@ -45,6 +45,32 @@ src/myproject/
 
 ---
 
+## Diagram
+
+```mermaid
+flowchart TD
+    A[__main__.py<br><small>Module entry point</small>] --> B[main.py<br><small>Delegates to cli_main</small>]
+    B --> C[cli_main.py<br><small>Coordinates parsing, settings, logging</small>]
+
+    C --> D[parser.py<br><small>Argument parsing</small>]
+    C --> E[logger_utils.py<br><small>Set up logging</small>]
+    C --> F[handlers.py<br><small>Route to core logic</small>]
+    C --> G[color_utils.py<br><small>Styled CLI output</small>]
+
+    F --> H[core.py<br><small>Business logic</small>]
+
+    style A fill:#f3f4f6,stroke:#333,stroke-width:1px
+    style B fill:#f3f4f6,stroke:#333,stroke-width:1px
+    style C fill:#dbeafe,stroke:#1e40af,stroke-width:2px
+    style D fill:#e0f2fe
+    style E fill:#e0f2fe
+    style F fill:#e0f2fe
+    style G fill:#e0f2fe
+    style H fill:#bbf7d0
+```
+
+---
+
 ## CLI Modules
 ### Entry Flow
 #### 1. **`__main__.py`**
