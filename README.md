@@ -15,7 +15,7 @@ A **modern and reusable Python project template** for building libraries, CLIs, 
 * [📦 Project Structure](#-project-structure)
   * [📂 Structure](#-structure)
   * [🧱 Architecture](#-architecture)
-* [⚙️ Requirements](#requirements)
+* [⚙️ Requirements](#-requirements)
 * [🚀 Usage](#-usage)
 * [👨‍💻 Developer Guide](#-developer-guide)
 * [🔁 Continuous Integration](#-continuous-integration)
