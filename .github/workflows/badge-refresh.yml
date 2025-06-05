@@ -1,0 +1,28 @@
+name: Refresh Coverage Badge
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🕓 Update README badge timestamp (nocache)
+        run: |
+          TIMESTAMP=$(date +%s)
+          sed -i "s#\(badge\.svg?branch=main&nocache=\)[0-9]*#\1$TIMESTAMP#g" README.md
+
+      - name: 📝 Commit & push updated README
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add README.md
+          git diff --quiet && echo "No changes to commit" || git commit -m "Refresh coverage badge timestamp"
+          git push

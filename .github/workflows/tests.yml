@@ -1,10 +1,11 @@
-# .github/workflows/tests.yml
-
 name: Tests
 
 on:
   push:
   pull_request:
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -71,3 +72,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+
+      - name: 🛠 Install GitHub CLI
+        if: matrix.python-version == '3.13' && github.ref == 'refs/heads/main'
+        run: sudo apt-get install gh
+
+      - name: 📨 Trigger badge refresh workflow (main branch only)
+        if: matrix.python-version == '3.13' && github.ref == 'refs/heads/main'
+        run: gh workflow run badge-refresh.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
