@@ -172,13 +172,33 @@ Ensures correctness, coverage, and lifecycle behavior:
 
 ## 🚀 Usage
 
-### 📥 Installation (Editable Mode)
+### 📥 Installation
+
+#### 👤 For Users (Standard Usage)
+
+Install the package in editable mode (or use `pip install .` for production):
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-make develop
+make install               # or: pip install -e .
 ```
+
+This installs only the base package, suitable for typical usage or deployment.
+
+#### 👨‍💻 For Developers (Contributors)
+
+Install the package **with development tools**, including testing, linting, and formatting tools:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+make develop               # or: pip install -e .[dev]
+```
+
+This enables all developer workflows: `pytest`, `ruff`, `mypy`, `coverage`, etc.
+
+---
 
 ### 💻 CLI Usage
 
@@ -194,48 +214,49 @@ python -m myproject --help
 
 ### 🔧 Makefile Commands
 
-| Command                             | Description                                                 |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `make install`                      | Install the package in editable mode                        |
-| `make develop`                      | Install with `[dev]` extras (for development)               |
-| `make fmt`                          | Format code using Ruff                                      |
-| `make fmt-check`                   | Check formatting without making changes                     |
-| `make lint-ruff`                   | Run Ruff linter on codebase                                 |
-| `make type-check`                  | Run MyPy static type checks                                 |
-| `make lint-all`                    | Run format, lint, and type check                            |
-| `make lint-all-check`             | Dry run of all checks                                       |
-| `make test`                         | Run all tests using Pytest                                  |
-| `make test-file FILE=...`          | Run a specific test file or pattern                         |
-| `make test-file-function FILE=... FUNC=...` | Run a specific test function in a file           |
-| `make test-fast`                   | Run only last failed tests                                  |
-| `make test-coverage`               | Run tests and show coverage in terminal                     |
-| `make test-coverage-xml`           | Generate XML coverage report (for CI tools)                 |
-| `make test-cov-html`               | Generate and open HTML coverage report                      |
-| `make test-coverage-rep`           | Show full line-by-line terminal report                      |
-| `make test-coverage-file FILE=...` | Show coverage for a specific file                           |
-| `make clean-coverage`              | Remove all cached coverage files                            |
-| `make test-watch`                  | Auto-rerun tests on file changes (requires `ptw`)           |
-| `make check-all`                   | Run lint, type-check, and test coverage                     |
-| `make precommit`                   | Install pre-commit Git hooks                                |
-| `make precommit-check`             | Dry-run all pre-commit hooks with output                    |
-| `make precommit-run`               | Run all pre-commit hooks                                    |
-| `make env-check`                   | Display Python version and current environment info         |
-| `make env-debug`                   | Show debug-related environment variables                    |
-| `make env-clear`                   | Unset `MYPROJECT_*` and `DOTENV_PATH` variables             |
-| `make env-show`                    | Show currently set `MYPROJECT_*` and `DOTENV_PATH` vars     |
-| `make env-example`                 | Show example environment variable usage                     |
-| `make dotenv-debug`                | Display `.env` loading debug info using internal CLI loader |
-| `make safety`                      | Run `safety` checks for dependency vulnerabilities          |
-| `make check-updates`              | List outdated Python packages                               |
-| `make check-toml`                  | Validate `pyproject.toml` syntax                            |
-| `make build`                       | Build distribution packages (`dist/`)                       |
-| `make clean`                       | Remove `dist/`, `build/`, and `.egg-info`                   |
-| `make clean-pyc`                   | Remove all `__pycache__` and `.pyc` files                   |
-| `make clean-all`                   | Clean everything: build, cache, pyc, logs, coverage         |
-| `make publish-test`                | Upload package to [TestPyPI](https://test.pypi.org/)        |
-| `make publish-dryrun`              | Dry-run and validate upload to TestPyPI                     |
-| `make publish`                     | Upload to real PyPI                                         |
-| `make upload-coverage`             | Upload test coverage results to Coveralls                   |
+| Command                                     | Description                                                 |
+| ------------------------------------------- | ----------------------------------------------------------- |
+| `make install`                              | Install the package in editable mode                        |
+| `make develop`                              | Install with `[dev]` extras (for development)               |
+| `make fmt`                                  | Format code using Ruff                                      |
+| `make fmt-check`                            | Check formatting without making changes                     |
+| `make lint-ruff`                            | Run Ruff linter on codebase                                 |
+| `make type-check`                           | Run MyPy static type checks                                 |
+| `make lint-all`                             | Run format, lint, and type check                            |
+| `make lint-all-check`                       | Dry run of all checks                                       |
+| `make test`                                 | Run all tests using Pytest                                  |
+| `make test-file FILE=...`                   | Run a specific test file or pattern                         |
+| `make test-file-function FILE=... FUNC=...` | Run a specific test function in a file                      |
+| `make test-fast`                            | Run only last failed tests                                  |
+| `make test-coverage`                        | Run tests and show coverage in terminal                     |
+| `make test-coverage-xml`                    | Generate XML coverage report (for CI tools)                 |
+| `make test-cov-html`                        | Generate and open HTML coverage report                      |
+| `make test-coverage-rep`                    | Show full line-by-line terminal report                      |
+| `make test-coverage-file FILE=...`          | Show coverage for a specific file                           |
+| `make clean-coverage`                       | Remove all cached coverage files                            |
+| `make test-watch`                           | Auto-rerun tests on file changes (requires `ptw`)           |
+| `make check-all`                            | Run lint, type-check, and test coverage                     |
+| `make precommit`                            | Install pre-commit Git hooks                                |
+| `make precommit-check`                      | Dry-run all pre-commit hooks with output                    |
+| `make precommit-run`                        | Run all pre-commit hooks                                    |
+| `make env-check`                            | Display Python version and current environment info         |
+| `make env-debug`                            | Show debug-related environment variables                    |
+| `make env-clear`                            | Unset `MYPROJECT_*` and `DOTENV_PATH` variables             |
+| `make env-show`                             | Show currently set `MYPROJECT_*` and `DOTENV_PATH` vars     |
+| `make env-example`                          | Show example environment variable usage                     |
+| `make dotenv-debug`                         | Display `.env` loading debug info using internal CLI loader |
+| `make safety`                               | Run `safety` checks for dependency vulnerabilities          |
+| `make check-updates`                        | List outdated Python packages                               |
+| `make check-toml`                           | Validate `pyproject.toml` syntax                            |
+| `make build`                                | Build distribution packages (`dist/`)                       |
+| `make clean`                                | Remove `dist/`, `build/`, and `.egg-info`                   |
+| `make clean-pyc`                            | Remove all `__pycache__` and `.pyc` files                   |
+| `make clean-all`                            | Clean everything: build, cache, pyc, logs, coverage         |
+| `make publish-test`                         | Upload package to [TestPyPI](https://test.pypi.org/)        |
+| `make publish-dryrun`                       | Dry-run and validate upload to TestPyPI                     |
+| `make publish`                              | Upload to real PyPI                                         |
+| `make upload-coverage`                      | Upload test coverage results to Coveralls                   |
+
 
 ---
 
