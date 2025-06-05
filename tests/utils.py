@@ -65,8 +65,9 @@ class ArgcompleteStub(ModuleType):
     def __init__(self) -> None:
         super().__init__("argcomplete")
         self.autocomplete = self._autocomplete
+        self.__spec__ = None
 
     @staticmethod
     def _autocomplete(*_args: object, **_kwargs: object) -> NoReturn:
-        error_msg = "Simulated autocomplete failure"
-        raise RuntimeError(error_msg)
+        msg = "Simulated autocomplete failure"
+        raise RuntimeError(msg)

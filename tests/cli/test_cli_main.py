@@ -1,3 +1,4 @@
+import contextlib
 import importlib
 import json
 import logging
@@ -324,15 +325,25 @@ def test_debug_prints_traceback(
     assert "traceback" in captured.err.lower()
     assert "runtimeerror: boom" in captured.err.lower()
 
-    def test_argcomplete_autocomplete_failure(
-        monkeypatch: pytest.MonkeyPatch,
-        log_stream: StringIO,
-        debug_logger: logging.Logger,
-    ) -> None:
-        _ = debug_logger  # Ensure logging output is captured
-        # Patch the fake argcomplete module
-        monkeypatch.setitem(sys.modules, "argcomplete", ArgcompleteStub())
-        monkeypatch.setattr(cli_main, "ARGCOMPLETE_AVAILABLE", True)
-        importlib.reload(cli_main)
-        logs = log_stream.getvalue()
-        assert "argcomplete setup failed: Simulated autocomplete failure" in logs
+
+def test_argcomplete_autocomplete_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    log_stream: StringIO,
+    debug_logger: logging.Logger,
+) -> None:
+    _ = debug_logger  # Ensure logging is initialized
+
+    # Patch the fake argcomplete module with a valid __spec__
+    mock_module = ArgcompleteStub()
+    mock_module.__spec__ = importlib.util.spec_from_loader("argcomplete", loader=None)
+    monkeypatch.setitem(sys.modules, "argcomplete", mock_module)
+
+    # Force argcomplete flag on reload
+    monkeypatch.setattr(cli_main, "ARGCOMPLETE_AVAILABLE", True)
+    importlib.reload(cli_main)
+
+    with contextlib.suppress(SystemExit):
+        cli_main.main(["--query", "foo"])
+
+    logs = log_stream.getvalue()
+    assert "argcomplete setup failed: Simulated autocomplete failure" in logs
