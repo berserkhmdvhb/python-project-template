@@ -3,7 +3,7 @@ In addition to the .md files provided here, the code base is also documented wit
 - Module-level docstring
 - Function-level docstrings (preserved/added)
 - Select inline comments (before key blocks)
-- __all__ declaration
+- `__all__` declaration
 - grouping logic or functions:
   ```python
   # ---------------------------------------------------------------------
