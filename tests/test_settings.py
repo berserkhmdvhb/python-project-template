@@ -1,3 +1,23 @@
+"""
+Unit tests for the `settings` module in the `myproject` package.
+
+These tests validate the behavior of configuration loading, environment resolution,
+and logging configuration logic implemented in `settings.py`. They ensure the
+application correctly adapts to DEV, UAT, and PROD environments and that dotenv
+and log-related behavior meets the design expectations under test conditions.
+
+Fixtures like `monkeypatch`, `log_stream`, `patched_settings`, and `load_fresh_settings`
+are leveraged to isolate test environments and control state, avoiding cross-test pollution.
+
+Test coverage includes:
+- Environment accessor functions
+- Dotenv loading behavior with debug control
+- Logging setup (file rotation, level parsing, teardown)
+- Edge cases for invalid environments or log levels
+
+All tests are isolated, reproducible, and do not require any persistent filesystem state.
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -19,6 +39,35 @@ MAX_BYTES_TEST = 2048
 BACKUP_COUNT_TEST = 7
 DOTENV_MAX_BYTES = 1111
 DOTENV_BACKUP_COUNT = 3
+
+__all__ = [
+    "test_default_environment_and_flags",
+    "test_default_log_level",
+    "test_dotenv_debug_empty_file",
+    "test_dotenv_debug_no_files",
+    "test_dotenv_debug_raises",
+    "test_dotenv_file_loading",
+    "test_dotenv_path_missing_warns",
+    "test_dotenv_priority_matrix",
+    "test_env_accessors",
+    "test_env_override_priority",
+    "test_env_sample_fallback",
+    "test_environment_empty_string",
+    "test_get_environment_case_insensitive",
+    "test_get_environment_defaults_to_dev",
+    "test_get_log_dir",
+    "test_invalid_numeric_env_fallback",
+    "test_is_not_test_mode",
+    "test_is_test_mode",
+    "test_log_config",
+    "test_no_dotenv_file",
+    "test_print_dotenv_debug_valid",
+    "test_prod_variants",
+    "test_resolve_loaded_dotenv_paths",
+    "test_safe_int",
+    "test_uat_variants",
+    "test_unknown_environment_passthrough",
+]
 
 # ---------------------------------------------------------------------
 # Unit-level Tests

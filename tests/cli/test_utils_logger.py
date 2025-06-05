@@ -1,3 +1,20 @@
+"""
+Unit tests for `utils_logger.py` in the CLI module of `myproject`.
+
+These tests verify the functionality of the logging system used by the CLI:
+setup behavior, handler creation, formatting, teardown safety, and log rotation.
+
+Components tested include:
+- Creation of rotating and stream handlers
+- Log file directory resolution and content writing
+- Custom filter behavior (`EnvironmentFilter`)
+- Formatter defaults
+- Log file rollover and cleanup
+
+All tests operate with isolated temporary directories and do not affect user
+filesystem. Handlers are created and cleaned up during each test.
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -25,6 +42,31 @@ if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
 LOGGER_NAME = "myproject"
+
+__all__ = [
+    "test_do_rollover_custom_pattern",
+    "test_environment_filter_adds_env",
+    "test_get_files_to_delete_returns_expected",
+    "test_handlers_write_to_correct_log_dir",
+    "test_rollover_closes_stream_if_open",
+    "test_rollover_handles_unlink_oserror",
+    "test_rollover_opens_new_stream_if_not_delayed",
+    "test_rollover_unlinks_deletable_files",
+    "test_rollover_unlinks_old_rotated_file",
+    "test_rotating_log_rollover",
+    "test_rotation_filename_variants",
+    "test_setup_logging_creates_handlers",
+    "test_setup_logging_full_flow",
+    "test_setup_logging_skips_if_not_reset",
+    "test_teardown_logger_covers_remove_handler",
+    "test_teardown_logger_default",
+    "test_teardown_logger_executes_remove_handler",
+    "test_teardown_logger_explicit_removal",
+    "test_teardown_logger_finally_removes",
+    "test_teardown_logger_removes_all_handlers",
+    "test_teardown_logger_removes_handler_line",
+    "test_teardown_logger_removes_handlers",
+]
 
 
 def get_logger() -> logging.Logger:
