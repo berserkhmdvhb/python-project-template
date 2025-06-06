@@ -222,11 +222,12 @@ clean-all: clean clean-pyc
 	$(PYTHON) -c "import pathlib; [p.unlink() for p in map(pathlib.Path, ['.coverage', 'coverage.xml']) if p.exists()]"
 
 publish-test:
+	twine check dist/*
 	twine upload --repository testpypi dist/*
 
 publish-dryrun:
 	twine check dist/*
-	twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing --non-interactive dist/*
+	twine upload --repository testpypi --skip-existing --non-interactive dist/*
 
 publish:
 	twine check dist/*
