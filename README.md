@@ -78,7 +78,7 @@ python-project-template/
 │       └── utils_logger.py            # Logging setup
 └── tests/
     ├── cli/                           # CLI test modules
-    ├── test_core.py                    # Core logic tests
+    ├── test_core.py                   # Core logic tests
     ├── test_log.py                    # Logging tests
     ├── test_settings.py               # Env and config tests
     ├── conftest.py                    # Shared fixtures and test setup
