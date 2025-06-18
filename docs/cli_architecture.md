@@ -14,6 +14,7 @@ This document describes the internal architecture of the `myproject` CLI, design
   - [🛣️ Handler Routing (`handlers.py`)](#-handler-routing-handlerspy)
   - [🎨 Output Styling (`color_utils.py`)](#-output-styling-color_utilspy)
   - [📝 Logging Setup (`logger_utils.py`)](#-logging-setup-logger_utilspy)
+- [🚀 Example CLI Usage]
 - [🧪 Testing the CLI](#-testing-the-cli)
 - [✅ Summary](#-summary)
 ---
@@ -209,6 +210,129 @@ def process_query_or_simulate(args, settings):
 * Uses `RotatingFileHandler` with size limit from `.env`
 * Appends or replaces existing handlers based on reset flag
 * Suppresses logs unless `--verbose` or `--debug`
+
+---
+
+## 🚀 Example CLI Usage
+
+
+The `charfinder` CLI supports a rich set of options for querying Unicode characters by name, offering flexible matching, formatting, environment-based behavior, and diagnostics. Below are real-world usage scenarios to illustrate the full capabilities of the CLI.
+
+---
+
+### 1. 🔍 Basic Fuzzy Search (Default Mode)
+
+```bash
+charfinder --query "heart"
+```
+
+**What it does:**
+
+* Performs a fuzzy search for the word "heart"
+* Uses the default algorithm (`token_sort_ratio`)
+* Outputs top matching Unicode characters with styled or plain text
+
+---
+
+### 2. ✅ Exact Match Search
+
+```bash
+charfinder --query "HEART SUIT" --exact
+```
+
+**What it does:**
+
+* Performs a case-insensitive exact match
+* Bypasses fuzzy logic for faster and stricter matching
+
+---
+
+### 3. ⚫ Plain Text Output (No Colors)
+
+```bash
+charfinder --query "heart" --color never --format text
+```
+
+**What it does:**
+
+* Forces no color styling
+* Outputs plain, pipe-friendly text
+* Useful for CI tools, logs, or redirection
+
+---
+
+### 4. 📃 JSON Output for Scripting
+
+```bash
+charfinder --query "star" --format json
+```
+
+**What it does:**
+
+* Outputs results in structured JSON
+* Can be consumed by `jq`, scripts, or Python
+
+---
+
+### 5. ⚖️ Custom Algorithm and Threshold
+
+```bash
+charfinder --query "tick" --fuzzy-algo levenshtein --threshold 0.75
+```
+
+**What it does:**
+
+* Switches to Levenshtein algorithm for fuzzy matching
+* Filters out matches below a 0.75 similarity score
+
+---
+
+### 6. 🔧 Diagnostic Debug Output
+
+```bash
+charfinder --query "tick" --debug
+```
+
+**What it does:**
+
+* Enables verbose debug info:
+
+  * Chosen algorithm
+  * Raw scores for each candidate
+  * Match mode and threshold logic
+* Helpful for understanding matching behavior
+
+---
+
+### 7. 🚫 Disable Verbose Logging
+
+```bash
+charfinder --query "sun" --no-verbose
+```
+
+**What it does:**
+
+* Suppresses additional logs
+* Ideal for clean terminal output or scripting
+
+---
+
+### 8. 📝 Environment-Specific Configuration
+
+```bash
+charfinder --query "cross" --env DEV --dotenv-path .env.dev
+```
+
+**What it does:**
+
+* Loads variables from `.env.dev`
+* Controls environment-dependent behavior (e.g., log path, cache rules)
+* Useful for DEV/UAT/PROD workflows
+
+---
+
+These examples can be combined and customized as needed. The CLI is designed to work flexibly with shell scripts, CI pipelines, developer terminals, and production monitoring systems alike.
+
 
 ---
 
