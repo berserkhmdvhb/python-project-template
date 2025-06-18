@@ -14,7 +14,7 @@ This document describes the internal architecture of the `myproject` CLI, design
   - [🛣️ Handler Routing (`handlers.py`)](#-handler-routing-handlerspy)
   - [🎨 Output Styling (`color_utils.py`)](#-output-styling-color_utilspy)
   - [📝 Logging Setup (`logger_utils.py`)](#-logging-setup-logger_utilspy)
-- [🚀 Example CLI Usage]
+- [🚀 Example CLI Usage](#-example-cli-usage)
 - [🧪 Testing the CLI](#-testing-the-cli)
 - [✅ Summary](#-summary)
 ---
